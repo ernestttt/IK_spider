@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
-using Unity.VisualScripting;
+using System;
 using UnityEngine;
 
 public class IK_leg : MonoBehaviour
@@ -9,77 +6,45 @@ public class IK_leg : MonoBehaviour
     [SerializeField] private Transform _base;
     [SerializeField] private Transform _target;
 
-    [SerializeField] private MeshRenderer[] _chain_renderers;
+    [SerializeField] private float[] chainLengths;
 
-    private ChainParam[] _chains;
-
-    private void Awake()
+    private void Start()
     {
-        _chains = new ChainParam[_chain_renderers.Length];
-        for (int i = 0; i < _chain_renderers.Length; i++){
-            _chains[i] = new ChainParam(_chain_renderers[i]);
-        }
+        // Initialization code goes here
     }
 
-    private void Start(){
-
-    }
-
-    private void Update(){
+    private void Update()
+    {
         Vector3 fromBase2Target = _target.position - _base.position;
-        Debug.DrawLine(_base.position, _base.position + fromBase2Target, Color.white);
+        float baseLength = fromBase2Target.magnitude;
+        float length1 = chainLengths[0];
+        float length2 = chainLengths[1];
+        float angle1 = FindAngle(baseLength, length1, length2);
+        float angle2 = FindAngle(length1, length2, baseLength);
 
-        // set rotations
-        for (int i = 0; i < _chains.Length; i++){
-            _chains[i].Rotation = Quaternion.FromToRotation(_chains[i].Direction, fromBase2Target) * _chains[i].Rotation;
-        }
+        Vector3 point1 = new Vector3(length1 * Mathf.Cos(angle1), length1 * Mathf.Sin(angle1), 0);
+        Vector3 baseVector = Vector3.right * baseLength;
 
-        // set positions
-        for(int i = 0; i < _chains.Length; i++){
-            Vector3 diff = _base.position - _chains[i].BasePos;
-           _chains[i].ChangeChainPositionBy(diff);
-        }
+        // Rotate everything by two angles
+        Vector3 base2TargetYZero = new Vector3(fromBase2Target.x, 0, fromBase2Target.z);
+        Vector3 axis = Vector3.Cross(fromBase2Target, base2TargetYZero);
+        float angleX = Vector3.SignedAngle(base2TargetYZero, fromBase2Target, axis);
+        Quaternion additionalRot = Quaternion.AngleAxis(angleX, Vector3.forward * Mathf.Sign(Vector3.Dot(Vector3.forward, axis)) * Mathf.Sign(Vector3.Dot(Vector3.right, base2TargetYZero)));
+
+        axis = Vector3.Cross(base2TargetYZero, Vector3.right);
+        float angleY = Vector3.SignedAngle(Vector3.right, base2TargetYZero, axis);
+        additionalRot = Quaternion.AngleAxis(angleY, Vector3.up * Mathf.Sign(Vector3.Dot(Vector3.up, axis))) * additionalRot;
+
+        point1 = additionalRot * point1;
+        baseVector = additionalRot * baseVector;
+
+        Debug.DrawLine(_base.position, _base.position + baseVector);
+        Debug.DrawLine(_base.position, _base.position + point1, Color.red);
+        Debug.DrawLine(_base.position + point1, _base.position + baseVector, Color.blue);
     }
 
-    private void OnDrawGizmos()
+    private float FindAngle(float a, float b, float c)
     {
-        float sphereRadius = 0.003f;
-        for(int i = 0; _chains != null && i < _chains.Length; i++){
-            Gizmos.color = Color.blue;
-            Gizmos.DrawSphere(_chains[i].BasePos, sphereRadius);
-            Gizmos.color = Color.red;
-            Gizmos.DrawSphere(_chains[i].EndPos, sphereRadius);
-        }
-        
-    }
-}
-
-public struct ChainParam{
-
-    private float _lenght;
-    private Transform _transform;
-
-    public float Lenght => _lenght;
-    public Vector3 BasePos => _transform.position - _transform.right * _lenght * 0.5f;
-    public Vector3 EndPos => _transform.position + _transform.right * _lenght * 0.5f;
-
-    public Vector3 Direction => _transform.right;
-
-    public Quaternion Rotation {
-        get{
-            return _transform.rotation;
-        }
-        set{
-            _transform.rotation = value;
-        }
-    }
-
-    public ChainParam(MeshRenderer renderer){
-        _lenght = renderer.transform.lossyScale.x;
-        _transform = renderer.transform;
-    }
-
-    public void ChangeChainPositionBy(Vector3 delta){
-        _transform.position += delta;
+        return Mathf.Acos((a * a + b * b - c * c) / (2 * a * b));
     }
 }
