@@ -19,10 +19,23 @@ public class IK_leg : MonoBehaviour
         float baseLength = fromBase2Target.magnitude;
         float length1 = chainLengths[0];
         float length2 = chainLengths[1];
-        float angle1 = FindAngle(baseLength, length1, length2);
-        float angle2 = FindAngle(length1, length2, baseLength);
+        float lenght3 = chainLengths[2];
+        
 
-        Vector3 point1 = new Vector3(length1 * Mathf.Cos(angle1), length1 * Mathf.Sin(angle1), 0);
+        float totalLenght = length1 + length2 + lenght3;
+        float baseTotalLengthRate = fromBase2Target.magnitude /totalLenght;
+
+        float lenght1and2 = length1 + length2;
+        lenght1and2 *= baseTotalLengthRate * 1.1f;
+        if (lenght1and2 > length1 + length2)
+            lenght1and2 = length1 + length2;
+
+        float angle1 = FindAngle(baseLength, lenght1and2, lenght3);
+        float angle2 = FindAngle(length1, lenght1and2, length2) + angle1;
+
+        Vector3 point1 = new Vector3(length1 * Mathf.Cos(angle2), length1 * Mathf.Sin(angle2), 0);
+        Vector3 point2 = new Vector3(lenght1and2 * Mathf.Cos(angle1), lenght1and2 * Mathf.Sin(angle1), 0);
+
         Vector3 baseVector = Vector3.right * baseLength;
 
         // Rotate everything by two angles
@@ -35,12 +48,14 @@ public class IK_leg : MonoBehaviour
         float angleY = Vector3.SignedAngle(Vector3.right, base2TargetYZero, axis);
         additionalRot = Quaternion.AngleAxis(angleY, Vector3.up * Mathf.Sign(Vector3.Dot(Vector3.up, axis))) * additionalRot;
 
+        point2 = additionalRot * point2;
         point1 = additionalRot * point1;
         baseVector = additionalRot * baseVector;
 
         Debug.DrawLine(_base.position, _base.position + baseVector);
-        Debug.DrawLine(_base.position, _base.position + point1, Color.red);
-        Debug.DrawLine(_base.position + point1, _base.position + baseVector, Color.blue);
+        Debug.DrawLine(_base.position, _base.position + point1);
+        Debug.DrawLine(_base.position + point1, _base.position + point2 );
+        Debug.DrawLine(_base.position + point2, _base.position + baseVector);
     }
 
     private float FindAngle(float a, float b, float c)
