@@ -539,6 +539,7 @@ MonoBehaviour:
   chainLengths:
   - 0.15
   - 0.15
+  - 0.15
 --- !u!4 &1078833891
 Transform:
   m_ObjectHideFlags: 0

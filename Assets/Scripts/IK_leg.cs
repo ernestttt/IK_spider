@@ -20,15 +20,11 @@ public class IK_leg : MonoBehaviour
         float length1 = chainLengths[0];
         float length2 = chainLengths[1];
         float lenght3 = chainLengths[2];
+
+        float totalLegLength = lenght3 + length2 + length1;
         
+        float lenght1and2 = Mathf.Lerp(length1, length2+length1, baseLength / totalLegLength);
 
-        float totalLenght = length1 + length2 + lenght3;
-        float baseTotalLengthRate = fromBase2Target.magnitude /totalLenght;
-
-        float lenght1and2 = length1 + length2;
-        lenght1and2 *= baseTotalLengthRate * 1.1f;
-        if (lenght1and2 > length1 + length2)
-            lenght1and2 = length1 + length2;
 
         float angle1 = FindAngle(baseLength, lenght1and2, lenght3);
         float angle2 = FindAngle(length1, lenght1and2, length2) + angle1;
