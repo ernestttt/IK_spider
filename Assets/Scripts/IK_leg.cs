@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class IK_leg : MonoBehaviour
@@ -7,11 +6,7 @@ public class IK_leg : MonoBehaviour
     [SerializeField] private Transform _target;
 
     [SerializeField] private float[] chainLengths;
-
-    private void Start()
-    {
-        // Initialization code goes here
-    }
+    [SerializeField] private float _rotationCoefX = .1f;
 
     private void Update()
     {
@@ -32,17 +27,24 @@ public class IK_leg : MonoBehaviour
         Vector3 point1 = new Vector3(length1 * Mathf.Cos(angle2), length1 * Mathf.Sin(angle2), 0);
         Vector3 point2 = new Vector3(lenght1and2 * Mathf.Cos(angle1), lenght1and2 * Mathf.Sin(angle1), 0);
 
-        Vector3 baseVector = Vector3.right * baseLength;
+        Vector3 baseVector = _base.right * baseLength;
+
+        // rotate base effect
+        Vector3 baseFromTargetYZero = new Vector3(fromBase2Target.x, 0, fromBase2Target.z);
+        float baseTargetAngle = Vector3.SignedAngle(_base.right, baseFromTargetYZero, _base.up);
+        Debug.Log(baseTargetAngle);
+        Quaternion rotBaseTarget = Quaternion.AngleAxis(baseTargetAngle * _rotationCoefX, fromBase2Target);
+        _base.rotation = rotBaseTarget;
 
         // Rotate everything by two angles
         Vector3 base2TargetYZero = new Vector3(fromBase2Target.x, 0, fromBase2Target.z);
         Vector3 axis = Vector3.Cross(fromBase2Target, base2TargetYZero);
         float angleX = Vector3.SignedAngle(base2TargetYZero, fromBase2Target, axis);
-        Quaternion additionalRot = Quaternion.AngleAxis(angleX, Vector3.forward * Mathf.Sign(Vector3.Dot(Vector3.forward, axis)) * Mathf.Sign(Vector3.Dot(Vector3.right, base2TargetYZero)));
+        Quaternion additionalRot = Quaternion.AngleAxis(angleX, _base.forward * Mathf.Sign(Vector3.Dot(_base.forward, axis)) * Mathf.Sign(Vector3.Dot(_base.right, base2TargetYZero)));
 
-        axis = Vector3.Cross(base2TargetYZero, Vector3.right);
-        float angleY = Vector3.SignedAngle(Vector3.right, base2TargetYZero, axis);
-        additionalRot = Quaternion.AngleAxis(angleY, Vector3.up * Mathf.Sign(Vector3.Dot(Vector3.up, axis))) * additionalRot;
+        axis = Vector3.Cross(base2TargetYZero, _base.right);
+        float angleY = Vector3.SignedAngle(_base.right, base2TargetYZero, axis);
+        additionalRot = Quaternion.AngleAxis(angleY, _base.up * Mathf.Sign(Vector3.Dot(_base.up, axis))) * additionalRot;
 
         point2 = additionalRot * point2;
         point1 = additionalRot * point1;
@@ -54,8 +56,13 @@ public class IK_leg : MonoBehaviour
         Debug.DrawLine(_base.position + point2, _base.position + baseVector);
     }
 
+    private void OnDrawGizmos() {
+        
+    }
+
     private float FindAngle(float a, float b, float c)
     {
-        return Mathf.Acos((a * a + b * b - c * c) / (2 * a * b));
+        float cosine = (a * a + b * b - c * c) / (2 * a * b);
+        return Mathf.Acos(cosine);
     }
 }
