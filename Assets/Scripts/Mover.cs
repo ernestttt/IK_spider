@@ -8,6 +8,11 @@ public class Mover : MonoBehaviour
     [SerializeField] private float radius = 3f;
 
     private List<Vector3> _points = new List<Vector3>();
+    private float squareRadius;
+
+    private void OnValidate() {
+        squareRadius = radius * radius;
+    }
 
     private void Update(){
         Collider[] colliders = Physics.OverlapSphere(transform.position, radius).
@@ -18,8 +23,24 @@ public class Mover : MonoBehaviour
         {
             Vector3 point = collider.ClosestPoint(transform.position);
             _points.Add(point);
-            Debug.DrawLine(transform.position,
-            point);
+        }
+
+        foreach(var collider in colliders){
+            var filter = collider.GetComponent<MeshFilter>();
+            if(filter){
+                Mesh mesh = filter.sharedMesh;
+                Vector3[] vertices = mesh.vertices;
+
+                //Vector3 ourPosInColliderSpace = collider.transform.InverseTransformPoint(transform.position);
+
+                foreach(Vector3 vertex in vertices){
+                    Vector3 transformedVertex = collider.transform.TransformPoint(vertex);
+                    if (squareRadius >= (transform.position - transformedVertex).sqrMagnitude){
+                        Vector3 pointInCircle = collider.transform.TransformPoint(vertex);
+                        _points.Add(pointInCircle);
+                    }
+                }  
+            }
         }
     }
 
