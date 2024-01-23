@@ -7,7 +7,10 @@ public class Mover : MonoBehaviour
 {
     [SerializeField] private float radius = 3f;
 
-    private List<Vector3> _points = new List<Vector3>();
+    private List<Vector3> _meshPoints = new List<Vector3>();
+    private List<Vector3> _closestPoints = new List<Vector3>();
+    
+
     private float squareRadius;
 
     private void OnValidate() {
@@ -17,15 +20,16 @@ public class Mover : MonoBehaviour
     private void Update(){
         Collider[] colliders = Physics.OverlapSphere(transform.position, radius).
             Where(a => a.transform != transform).ToArray();
-        
-        _points.Clear();
+
+        _closestPoints.Clear();
         foreach (var collider in colliders)
         {
             Vector3 point = collider.ClosestPoint(transform.position);
-            _points.Add(point);
+            _closestPoints.Add(point);
         }
 
-        foreach(var collider in colliders){
+        _meshPoints.Clear();
+        foreach (var collider in colliders){
             var filter = collider.GetComponent<MeshFilter>();
             if(filter){
                 Mesh mesh = filter.sharedMesh;
@@ -37,7 +41,7 @@ public class Mover : MonoBehaviour
                     Vector3 transformedVertex = collider.transform.TransformPoint(vertex);
                     if (squareRadius >= (transform.position - transformedVertex).sqrMagnitude){
                         Vector3 pointInCircle = collider.transform.TransformPoint(vertex);
-                        _points.Add(pointInCircle);
+                        _meshPoints.Add(pointInCircle);
                     }
                 }  
             }
@@ -48,7 +52,15 @@ public class Mover : MonoBehaviour
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, radius);
 
-        foreach(var point in _points)
+        Gizmos.color = Color.green;
+        DrawPoints(_closestPoints);
+        Gizmos.color = Color.cyan;
+        DrawPoints(_meshPoints);
+
+    }
+
+    private void DrawPoints(IEnumerable<Vector3> points){
+        foreach (var point in points)
         {
             Gizmos.DrawSphere(point, .1f);
         }
