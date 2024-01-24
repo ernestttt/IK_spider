@@ -1497,7 +1497,6 @@ GameObject:
   - component: {fileID: 1368561276}
   - component: {fileID: 1368561275}
   - component: {fileID: 1368561274}
-  - component: {fileID: 1368561273}
   m_Layer: 0
   m_Name: Spider
   m_TagString: Untagged
@@ -1505,19 +1504,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1368561273
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1368561272}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0f90e4c7d67a863448ace729e0513204, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  radius: 3
 --- !u!65 &1368561274
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1600,7 +1586,7 @@ Transform:
   m_GameObject: {fileID: 1368561272}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 24.04, y: 1.53, z: 42.43}
+  m_LocalPosition: {x: 29.09, y: 3.362, z: 38.55}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
