@@ -24,7 +24,9 @@ public class Mover : MonoBehaviour
 
     private Vector3 currentNormal = Vector3.up;
 
-    [SerializeField] private float distanceFromSurface;
+    [SerializeField] private float distanceFromSurface = 2;
+    [SerializeField] private float radiusForDistance = 1.5f;
+    [SerializeField] private float distanceInterpolationSpeed = 10f;
 
     private void OnValidate() {
         squareRadius = radius * radius;
@@ -35,7 +37,7 @@ public class Mover : MonoBehaviour
         //distanceFromSurface = radius * .5f;
     }
 
-    private void Update(){
+    private void FixedUpdate(){
         Collider[] colliders = Physics.OverlapSphere(transform.position, radius).
             Where(a => a.transform != transform).ToArray();
 
@@ -58,24 +60,40 @@ public class Mover : MonoBehaviour
 
     }
 
+    private float timeInterval = 0;
     private void UpdatePosition(Vector3 normal){
         Ray ray = new Ray(transform.position, -normal);
-        
-        if (Physics.Raycast(ray, out RaycastHit hit, 100))
+        Quaternion rot = Quaternion.AngleAxis(-5f, Vector3.right);
+        Ray ray1 = new Ray(transform.position + Vector3.up * .2f, rot * -normal);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, distanceFromSurface * 2f))
         {
-           // Debug.DrawLine(transform.position, hit.point);
+            Debug.DrawLine(transform.position, hit.point);
             Vector3 posTo = hit.point + normal * distanceFromSurface;
             float diff = (posTo - transform.position).magnitude;
             if (diff > .1f)
             {
-                float t = 1 * Time.deltaTime / diff;
+                float t = distanceInterpolationSpeed * Time.fixedDeltaTime / diff;
                 transform.position = Vector3.Lerp(transform.position, posTo, t);
-               
+
             }
         }
+        else if  (timeInterval >= .05f && 
+                Physics.Raycast(ray1, out RaycastHit hit1, distanceFromSurface * 2.5f))
+        {
+            Debug.DrawLine(transform.position, hit1.point);
+            Vector3 posTo = hit1.point + normal * distanceFromSurface;
+            float diff = (posTo - transform.position).magnitude;
+            if (diff > .1f)
+            {
+                float t = distanceInterpolationSpeed * Time.fixedDeltaTime / diff;
+                transform.position = Vector3.Lerp(transform.position, posTo, t);
+
+            }
+            timeInterval = 0;
+        }
         else{
-            // try to rotate slightly down
-            //transform.Rotate(0, 0, -10);
+            timeInterval += Time.fixedDeltaTime;
         }
     }
 
@@ -129,16 +147,21 @@ public class Mover : MonoBehaviour
         foreach(Vector3 dir in _directions){
             //Vector3 resultDir = rotation * dir;
             Ray ray = new Ray(origin, dir);
-            var hits = Physics.RaycastAll(ray, radius * 1.2f);
-            if (hits.Length > 0)
-            {
-                _rayPoints.Add(hits[0].point);
-                _hitNormals.Add(hits[0].normal);
+            // var hits = Physics.RaycastAll(ray, radius * 1.2f);
+            // if (hits.Length > 0)
+            // {
+                // _rayPoints.Add(hits[0].point);
+                // _hitNormals.Add(hits[0].normal);
                 // foreach(var hit in hits)
                 // {
                 //     _rayPoints.Add(hit.point);
                 //     _hitNormals.Add(hit.normal);
                 // }
+            // }
+
+            if(Physics.Raycast(ray, out RaycastHit hit, radius * 1.2f)){
+                _rayPoints.Add(hit.point);
+                _hitNormals.Add(hit.normal);
             }
         }
     }
@@ -186,7 +209,7 @@ public class Mover : MonoBehaviour
         if(angle < 1f)
             return from;
 
-        float t = interpolationSpeed * Time.deltaTime / angle;
+        float t = interpolationSpeed * Time.fixedDeltaTime / angle;
 
         Quaternion currentRot = Quaternion.Slerp(Quaternion.identity, rot1, t);
 
