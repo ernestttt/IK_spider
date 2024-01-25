@@ -7,20 +7,32 @@ using UnityEngine;
 public class Mover : MonoBehaviour
 {
     [SerializeField] private float radius = 3f;
+    
 
     private List<Vector3> _meshPoints = new List<Vector3>();
     private List<Vector3> _closestPoints = new List<Vector3>();
     private List<Vector3> _rayPoints = new List<Vector3>();
+    private List<Vector3> _hitNormals = new List<Vector3>();
     private List<Vector3> _directions = new List<Vector3>();
+
+    [SerializeField] private float interpolationSpeed = 30f;
 
     [Header("Sphere settings"), SerializeField]
     private int resolution = 32;
 
     private float squareRadius;
 
+    private Vector3 currentNormal = Vector3.up;
+
+    [SerializeField] private float distanceFromSurface;
+
     private void OnValidate() {
         squareRadius = radius * radius;
         GenerateHemiphereDirections();
+    }
+
+    private void Start(){
+        //distanceFromSurface = radius * .5f;
     }
 
     private void Update(){
@@ -30,15 +42,85 @@ public class Mover : MonoBehaviour
         FillClosestPoints(colliders);
         FillMeshPoints(colliders);
         FillRaycastPoints();
-        if(_rayPoints.Count > 0)
+
+        // set orientation
+        if(_rayPoints.Count > 15)
         {
-            Vector3 normal = GetNormalForBody(transform.position, _rayPoints);
-            Debug.DrawLine(transform.position, transform.position + normal * 4, Color.red);
+            Vector3 normal = GetTotalNormal(_hitNormals);
+            //Debug.DrawLine(transform.position, transform.position + normal * 4, Color.red);
+            currentNormal = GetCurrentNormal(currentNormal, normal);
+           // Debug.DrawLine(transform.position, transform.position + currentNormal * 4, Color.blue);
+
+            transform.up = currentNormal;
+            
+        }
+        UpdatePosition(currentNormal);
+
+    }
+
+    private void UpdatePosition(Vector3 normal){
+        Ray ray = new Ray(transform.position, -normal);
+        
+        if (Physics.Raycast(ray, out RaycastHit hit, 100))
+        {
+            Debug.DrawLine(transform.position, hit.point);
+            Vector3 posTo = hit.point + normal * distanceFromSurface;
+            float diff = (posTo - transform.position).magnitude;
+            if (diff > .3f)
+            {
+                float t = 30 * Time.deltaTime / diff;
+                transform.position = Vector3.Lerp(transform.position, posTo, t);
+               
+            }
+        }
+        else{
+            // try to rotate slightly down
+        }
+    }
+
+    private void UpdatePosition(IEnumerable<Vector3> cloud){
+        var invertedPoints = cloud.Select(a => transform.InverseTransformPoint(a));
+        var orderByX = invertedPoints.OrderBy(a => a.x);
+        var orderByY = invertedPoints.OrderBy(a => a.y);
+        var orderByZ = invertedPoints.OrderBy(a => a.z);
+
+        Vector3 point1X = orderByX.First();
+        Vector3 point2X = orderByX.Last();
+        Vector3 point1Y = orderByY.First();
+        Vector3 point2Y = orderByY.Last();
+        Vector3 point1Z = orderByZ.First();
+        Vector3 point2Z = orderByZ.Last();
+
+        Vector3 middlePointX = point1X + (point2X - point1X) * 0.5f;
+        Vector3 middlePointY = point1Y + (point2Y - point1Y) * 0.5f;
+        Vector3 middlePointZ = point1Z + (point2Z - point1Z) * 0.5f;
+
+        float averageX = (middlePointX.x + middlePointY.x + middlePointZ.x) / 3;
+        float averageY = (middlePointX.y + middlePointY.y + middlePointZ.y) / 3;
+        float averageZ = (middlePointX.z + middlePointY.z + middlePointZ.z) / 3;
+
+        Vector3 resultPoint = new Vector3(averageX, averageY, averageZ);
+
+        //Vector3 middlePoint1 = middlePointX + (middlePointY - middlePointX) * 0.5f;
+       // Vector3 middlePoint2 = middlePointY + (middlePointZ - middlePointY) * 0.5f;
+
+        // Vector3 resultPoint = middlePoint1 + (middlePoint2 - middlePoint1) * 0.5f;
+        resultPoint = transform.TransformPoint(resultPoint);
+        Vector3 posTo = resultPoint + currentNormal * distanceFromSurface;
+
+        
+
+        float diff = (posTo - transform.position).magnitude;
+        if (diff > .3f)
+        {
+            float t = 5 * Time.deltaTime / diff;
+            transform.position = Vector3.Lerp(transform.position, posTo, t);
         }
     }
 
     private void FillRaycastPoints(){
         _rayPoints.Clear();
+        _hitNormals.Clear();
 
         Vector3 origin = transform.position;
         Quaternion rotation = transform.rotation;
@@ -47,9 +129,10 @@ public class Mover : MonoBehaviour
             Vector3 resultDir = rotation * dir;
             Ray ray = new Ray(origin, resultDir);
             
-            if(Physics.Raycast(ray, out RaycastHit hit, radius * 1.1f))
+            if(Physics.Raycast(ray, out RaycastHit hit, radius * 1.2f))
             {
                 _rayPoints.Add(hit.point);
+                _hitNormals.Add(hit.normal);
             }
         }
     }
@@ -87,6 +170,22 @@ public class Mover : MonoBehaviour
         }
     }
 
+    private Vector3 GetCurrentNormal(Vector3 from, Vector3 to){
+        Quaternion rot1 = Quaternion.FromToRotation(from, to);
+    
+
+        float angle = Vector3.Angle(from, to);
+        Debug.Log(angle);
+        if(angle < 2f)
+            return from;
+
+        float t = interpolationSpeed * Time.deltaTime / angle;
+
+        Quaternion currentRot = Quaternion.Slerp(Quaternion.identity, rot1, t);
+
+        return (currentRot * from).normalized;
+    }
+
     private Vector3[] GenerateOctaspherePoints(){
         int totalResolution = resolution * resolution;
 
@@ -113,6 +212,17 @@ public class Mover : MonoBehaviour
         return points;
     }
 
+    private Vector3 GetTotalNormal(IEnumerable<Vector3> normals)
+    {
+        Vector3 totalNormal = Vector3.zero;
+
+        foreach(var normal in normals){
+            totalNormal += normal;
+        }
+        //Debug.DrawLine(transform.position, transform.position + totalNormal.normalized * 5, Color.green);
+        return totalNormal.normalized;
+    }
+
     private void GenerateHemiphereDirections(){
         _directions = GenerateOctaspherePoints().Where(a => a.y <= 0).ToList();
     }
@@ -133,6 +243,34 @@ public class Mover : MonoBehaviour
         return normal;
     }
 
+    private Vector3 GetNormalForBody(IEnumerable<Vector3> cloud){
+        var inversedPoints = cloud.Select(a => transform.InverseTransformPoint(a));
+
+        // z
+        var orderedByZ = inversedPoints.OrderBy(a => a.z);
+        Vector3 pointZ1 = orderedByZ.First();
+        Vector3 pointZ2 = orderedByZ.Last();
+        Vector3 pointZ1transformed = transform.TransformPoint(pointZ1);
+        Vector3 pointZ2transformed = transform.TransformPoint(pointZ2);
+        Debug.DrawLine(pointZ1transformed, pointZ2transformed, Color.blue);
+
+        // x
+        var orderedByX = inversedPoints.OrderBy(a => a.x);
+        Vector3 pointX1 = orderedByX.First();
+        Vector3 pointX2 = orderedByX.Last();
+        Vector3 pointX1transformed = transform.TransformPoint(pointX1);
+        Vector3 pointX2transformed = transform.TransformPoint(pointX2);
+        Debug.DrawLine(pointX1transformed, pointX2transformed, Color.red);
+
+        Vector3 firstVector = pointX1 - pointZ2;
+        Vector3 secondVector = pointX2 - pointZ2;
+
+        Vector3 cross = Vector3.Cross(secondVector, firstVector);
+        Vector3 normal = transform.TransformVector(cross).normalized;
+
+        return normal;
+    }
+
     private Vector3 GetNormalForBody(Vector3 pos, IEnumerable<Vector3> cloud){
         //Vector3 point1 = cloud.OrderBy(a => (a - pos).sqrMagnitude).Last();
         Vector3 point1 = cloud.OrderBy(a => Mathf.Max(a.y)).First();
@@ -141,31 +279,36 @@ public class Mover : MonoBehaviour
         Vector3 middlePoint = point1 + 0.5f * (point2 - point1);
         Vector3 point3 = cloud.
             Where(a => a != point1 && a != point2).
-            OrderBy(a => (a - middlePoint).sqrMagnitude).Last();
+            OrderBy(a => {
+                float squareMagnitude1 = (point1 - a).sqrMagnitude;
+                float squareMagnitude2 = (point2 - a).sqrMagnitude;
+                float squareMagnitude3 = (middlePoint - a).sqrMagnitude;
+                return squareMagnitude1 + squareMagnitude2 + squareMagnitude3;
+            }).Last();
 
         Vector3 cross = Vector3.Cross(point3 - point1, point2 - point1);
         Vector3 minusCross = -cross;
 
         Vector3 normal = (new Vector3[]{cross, minusCross}).
             OrderBy(a => (a - pos).sqrMagnitude).First().normalized;
-        Debug.DrawLine(point1, point2);
-        Debug.DrawLine(point2, point3);
-        Debug.DrawLine(point1, point3);
+        // Debug.DrawLine(point1, point2);
+        // Debug.DrawLine(point2, point3);
+        // Debug.DrawLine(point1, point3);
         return normal;
     }
 
     private void OnDrawGizmosSelected() {
         Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, radius);
+        //Gizmos.DrawWireSphere(transform.position, radius);
 
         Gizmos.color = Color.green;
-        DrawPoints(_closestPoints);
+        //DrawPoints(_closestPoints);
         Gizmos.color = Color.cyan;
-        DrawPoints(_meshPoints);
+       // DrawPoints(_meshPoints);
         Gizmos.color = Color.red;
-        _rayPoints.AddRange(_meshPoints);
-        _rayPoints.AddRange(_closestPoints);
-        DrawPoints(_rayPoints);
+       // _rayPoints.AddRange(_meshPoints);
+        //_rayPoints.AddRange(_closestPoints);
+       DrawPoints(_rayPoints);
     }
 
     private void DrawPoints(IEnumerable<Vector3> points){
