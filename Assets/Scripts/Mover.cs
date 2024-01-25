@@ -44,12 +44,12 @@ public class Mover : MonoBehaviour
         FillRaycastPoints();
 
         // set orientation
-        if(_rayPoints.Count > 15)
+        if(_rayPoints.Count > 5)
         {
             Vector3 normal = GetTotalNormal(_hitNormals);
-            //Debug.DrawLine(transform.position, transform.position + normal * 4, Color.red);
+            Debug.DrawLine(transform.position, transform.position + normal * 4, Color.red);
             currentNormal = GetCurrentNormal(currentNormal, normal);
-           // Debug.DrawLine(transform.position, transform.position + currentNormal * 4, Color.blue);
+            Debug.DrawLine(transform.position, transform.position + currentNormal * 4, Color.blue);
 
             transform.up = currentNormal;
             
@@ -63,18 +63,19 @@ public class Mover : MonoBehaviour
         
         if (Physics.Raycast(ray, out RaycastHit hit, 100))
         {
-            Debug.DrawLine(transform.position, hit.point);
+           // Debug.DrawLine(transform.position, hit.point);
             Vector3 posTo = hit.point + normal * distanceFromSurface;
             float diff = (posTo - transform.position).magnitude;
-            if (diff > .3f)
+            if (diff > .1f)
             {
-                float t = 30 * Time.deltaTime / diff;
+                float t = 1 * Time.deltaTime / diff;
                 transform.position = Vector3.Lerp(transform.position, posTo, t);
                
             }
         }
         else{
             // try to rotate slightly down
+            //transform.Rotate(0, 0, -10);
         }
     }
 
@@ -113,7 +114,7 @@ public class Mover : MonoBehaviour
         float diff = (posTo - transform.position).magnitude;
         if (diff > .3f)
         {
-            float t = 5 * Time.deltaTime / diff;
+            float t = 15 * Time.deltaTime / diff;
             transform.position = Vector3.Lerp(transform.position, posTo, t);
         }
     }
@@ -126,13 +127,18 @@ public class Mover : MonoBehaviour
         Quaternion rotation = transform.rotation;
 
         foreach(Vector3 dir in _directions){
-            Vector3 resultDir = rotation * dir;
-            Ray ray = new Ray(origin, resultDir);
-            
-            if(Physics.Raycast(ray, out RaycastHit hit, radius * 1.2f))
+            //Vector3 resultDir = rotation * dir;
+            Ray ray = new Ray(origin, dir);
+            var hits = Physics.RaycastAll(ray, radius * 1.2f);
+            if (hits.Length > 0)
             {
-                _rayPoints.Add(hit.point);
-                _hitNormals.Add(hit.normal);
+                _rayPoints.Add(hits[0].point);
+                _hitNormals.Add(hits[0].normal);
+                // foreach(var hit in hits)
+                // {
+                //     _rayPoints.Add(hit.point);
+                //     _hitNormals.Add(hit.normal);
+                // }
             }
         }
     }
@@ -171,12 +177,13 @@ public class Mover : MonoBehaviour
     }
 
     private Vector3 GetCurrentNormal(Vector3 from, Vector3 to){
+        //return (from + to).normalized;
         Quaternion rot1 = Quaternion.FromToRotation(from, to);
     
 
         float angle = Vector3.Angle(from, to);
         Debug.Log(angle);
-        if(angle < 2f)
+        if(angle < 1f)
             return from;
 
         float t = interpolationSpeed * Time.deltaTime / angle;
@@ -219,12 +226,16 @@ public class Mover : MonoBehaviour
         foreach(var normal in normals){
             totalNormal += normal;
         }
+        totalNormal = totalNormal.normalized;
+        if (Vector3.Angle(currentNormal, totalNormal) < 0f){
+            return currentNormal;
+        }
         //Debug.DrawLine(transform.position, transform.position + totalNormal.normalized * 5, Color.green);
         return totalNormal.normalized;
     }
 
     private void GenerateHemiphereDirections(){
-        _directions = GenerateOctaspherePoints().Where(a => a.y <= 0).ToList();
+        _directions = GenerateOctaspherePoints().ToList();
     }
 
     private Vector3 GetNormalByExtremeValues(Vector3 pos, IEnumerable<Vector3> cloud){
@@ -308,7 +319,8 @@ public class Mover : MonoBehaviour
         Gizmos.color = Color.red;
        // _rayPoints.AddRange(_meshPoints);
         //_rayPoints.AddRange(_closestPoints);
-       DrawPoints(_rayPoints);
+        DrawPoints(_rayPoints);
+       //DrawPoints(_directions.Select(a => transform.position + a * 3));
     }
 
     private void DrawPoints(IEnumerable<Vector3> points){
