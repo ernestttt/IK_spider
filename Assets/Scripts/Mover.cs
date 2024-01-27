@@ -27,6 +27,10 @@ public class Mover : MonoBehaviour
     [SerializeField] private float distanceFromSurface = 2;
     [SerializeField] private float radiusForDistance = 1.5f;
     [SerializeField] private float distanceInterpolationSpeed = 10f;
+    [SerializeField] private float movementSpeed = 1f;
+
+    private float moveInput = 0f;
+    private float rotationInput = 0f;
 
     private void OnValidate() {
         squareRadius = radius * radius;
@@ -37,7 +41,7 @@ public class Mover : MonoBehaviour
         //distanceFromSurface = radius * .5f;
     }
 
-    private void FixedUpdate(){
+    private void Update(){
         Collider[] colliders = Physics.OverlapSphere(transform.position, radius).
             Where(a => a.transform != transform).ToArray();
 
@@ -45,19 +49,31 @@ public class Mover : MonoBehaviour
         FillMeshPoints(colliders);
         FillRaycastPoints();
 
+        HandleInput();
+        UpdatePosition(currentNormal);
+
         // set orientation
-        if(_rayPoints.Count > 5)
+        if (_rayPoints.Count > 5)
         {
             Vector3 normal = GetTotalNormal(_hitNormals);
             Debug.DrawLine(transform.position, transform.position + normal * 4, Color.red);
+            var oldNormal = currentNormal;
             currentNormal = GetCurrentNormal(currentNormal, normal);
             Debug.DrawLine(transform.position, transform.position + currentNormal * 4, Color.blue);
 
-            transform.up = currentNormal;
-            
+            Quaternion directionRotation = 
+                Quaternion.AngleAxis(rotationInput * movementSpeed * 80 * Time.deltaTime, transform.up);
+            transform.rotation =  directionRotation * transform.rotation;
+            Quaternion rotation = Quaternion.FromToRotation(transform.up, currentNormal);
+           
+            Debug.Log(rotation);
+            transform.rotation = rotation * transform.rotation;
         }
-        UpdatePosition(currentNormal);
+    }
 
+    private void HandleInput(){
+        moveInput = Input.GetAxis("Vertical");
+        rotationInput = Input.GetAxis("Mouse X");
     }
 
     private float timeInterval = 0;
@@ -73,7 +89,7 @@ public class Mover : MonoBehaviour
             float diff = (posTo - transform.position).magnitude;
             if (diff > .1f)
             {
-                float t = distanceInterpolationSpeed * Time.fixedDeltaTime / diff;
+                float t = distanceInterpolationSpeed * Time.deltaTime / diff;
                 transform.position = Vector3.Lerp(transform.position, posTo, t);
 
             }
@@ -86,15 +102,17 @@ public class Mover : MonoBehaviour
             float diff = (posTo - transform.position).magnitude;
             if (diff > .1f)
             {
-                float t = distanceInterpolationSpeed * Time.fixedDeltaTime / diff;
+                float t = distanceInterpolationSpeed * Time.deltaTime / diff;
                 transform.position = Vector3.Lerp(transform.position, posTo, t);
 
             }
             timeInterval = 0;
         }
         else{
-            timeInterval += Time.fixedDeltaTime;
+            timeInterval += Time.deltaTime;
         }
+
+        transform.position += moveInput * movementSpeed * Time.deltaTime * transform.forward;
     }
 
     private void UpdatePosition(IEnumerable<Vector3> cloud){
@@ -130,7 +148,7 @@ public class Mover : MonoBehaviour
         
 
         float diff = (posTo - transform.position).magnitude;
-        if (diff > .3f)
+        if (diff >= 0)
         {
             float t = 15 * Time.deltaTime / diff;
             transform.position = Vector3.Lerp(transform.position, posTo, t);
@@ -205,11 +223,10 @@ public class Mover : MonoBehaviour
     
 
         float angle = Vector3.Angle(from, to);
-        Debug.Log(angle);
-        if(angle < 1f)
+        if(angle < 0f)
             return from;
 
-        float t = interpolationSpeed * Time.fixedDeltaTime / angle;
+        float t = interpolationSpeed * Time.deltaTime / angle;
 
         Quaternion currentRot = Quaternion.Slerp(Quaternion.identity, rot1, t);
 
