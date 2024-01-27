@@ -226,6 +226,52 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9524447}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &36022084
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 36022085}
+  - component: {fileID: 36022086}
+  m_Layer: 0
+  m_Name: CameraFollower
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &36022085
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 36022084}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 19.1, y: 3.68, z: 43.8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1475385597}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &36022086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 36022084}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c02b800f5eb34e4bbf77bd0b294fe32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _target: {fileID: 1368561277}
 --- !u!1 &63755033
 GameObject:
   m_ObjectHideFlags: 0
@@ -1612,7 +1658,7 @@ MonoBehaviour:
   distanceFromSurface: 2
   radiusForDistance: 0.5
   distanceInterpolationSpeed: 10
-  movementSpeed: 1
+  movementSpeed: 3
 --- !u!1 &1420918914
 GameObject:
   m_ObjectHideFlags: 0
@@ -1805,12 +1851,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1475385594}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2617956, y: 0.7147722, z: -0.33816123, w: 0.5533632}
-  m_LocalPosition: {x: -17.23929, y: 24.927532, z: 32.48742}
+  m_LocalRotation: {x: -0.004231941, y: 0.8737353, z: -0.4863239, w: -0.00760746}
+  m_LocalPosition: {x: 0.16028023, y: 11.783861, z: 10.146858}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 36022085}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1517540255
 GameObject:
@@ -2659,7 +2705,7 @@ MeshCollider:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1475385597}
   - {fileID: 1880922059}
+  - {fileID: 36022085}
   - {fileID: 89015172}
   - {fileID: 1368561277}
