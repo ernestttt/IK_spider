@@ -8,6 +8,8 @@ public class PointFinder : MonoBehaviour
     [Tooltip("points only for one side, they are symetrical")]
     [SerializeField] private Vector3[] _legPlacement;
 
+    private Vector3[] _hitPoints = new Vector3[8];
+
     private Vector3[] _currentLegPoints = new Vector3[8];
 
     private Vector3[] CurrentPoints{
@@ -25,12 +27,41 @@ public class PointFinder : MonoBehaviour
 
     private void Update(){
         DrawLegPlacement();
+
+        for (int i = 0; i < CurrentPoints.Length; i++){
+            Ray ray = new Ray(_currentLegPoints[i], -_mover.Normal);
+
+            if(Physics.Raycast(ray, out RaycastHit hit, 4f)){
+                _hitPoints[i] = hit.point;
+                Debug.DrawLine(_currentLegPoints[i], _hitPoints[i]);
+            }
+            else if(Physics.SphereCast(ray.origin, 1.5f, ray.direction, out RaycastHit sphereHit, 4f)){
+                if(sphereHit.collider is MeshCollider){
+                    _hitPoints[i] = sphereHit.point;
+                }
+                else{
+                    _hitPoints[i] = sphereHit.collider.ClosestPoint(_currentLegPoints[i]);
+                }
+                
+                Debug.DrawLine(_currentLegPoints[i], _hitPoints[i]);
+            }
+            else{
+                _hitPoints[i] = Vector3.zero;
+            }
+        }
     }
 
     private void DrawLegPlacement(){
         foreach(var leg in CurrentPoints)
         {
             Debug.DrawLine(transform.position, leg);
+        }
+    }
+
+    private void OnDrawGizmosSelected(){
+        foreach(var point in _hitPoints){
+            Gizmos.color = Color.green;
+            Gizmos.DrawSphere(point, .1f);
         }
     }
 }

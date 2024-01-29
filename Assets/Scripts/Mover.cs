@@ -27,6 +27,8 @@ public class Mover : MonoBehaviour
 
     private float _rayCastTimeInterval = 0;
 
+    public Vector3 Normal => _currentNormal;
+
 
     private void OnValidate() {
         GenerateHemiphereDirections();
@@ -201,7 +203,7 @@ public class Mover : MonoBehaviour
         Gizmos.color = Color.red;
        // _rayPoints.AddRange(_meshPoints);
         //_rayPoints.AddRange(_closestPoints);
-       DrawPoints(_rayCastPoints);
+       //DrawPoints(_rayCastPoints);
        //DrawPoints(_directions.Select(a => transform.position + a * 3));
     }
 
