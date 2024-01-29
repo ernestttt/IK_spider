@@ -203,8 +203,10 @@ public class Mover : MonoBehaviour
         Gizmos.color = Color.red;
        // _rayPoints.AddRange(_meshPoints);
         //_rayPoints.AddRange(_closestPoints);
-       //DrawPoints(_rayCastPoints);
-       //DrawPoints(_directions.Select(a => transform.position + a * 3));
+       DrawPoints(_rayCastPoints);
+        //DrawPoints(_directions.Select(a => transform.position + a * 3));
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(transform.position, sphereRadius);
     }
 
     private void DrawPoints(IEnumerable<Vector3> points){

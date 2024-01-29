@@ -464,17 +464,18 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 136734596}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 33736f6c4f8e9674580f9c076b98acc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _mover: {fileID: 0}
+  _mover: {fileID: 1368561279}
   _legPlacement:
   - {x: 1.5, y: 0, z: 1.84}
   - {x: 1.82, y: 0, z: 0.71}
   - {x: 1.55, y: 0, z: -0.16}
   - {x: 0.88, y: 0, z: -1.63}
+  step: 1
 --- !u!1 &161621537
 GameObject:
   m_ObjectHideFlags: 0
@@ -1676,7 +1677,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1368561272}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0f90e4c7d67a863448ace729e0513204, type: 3}
   m_Name: 
