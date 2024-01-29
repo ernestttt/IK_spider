@@ -13,14 +13,20 @@ public class IK_leg : MonoBehaviour
     [SerializeField] private float _rotationCoefX = .1f;
     [SerializeField] private float _thickness = .1f;
     [SerializeField] private Transform _base;
-    [SerializeField] private Transform _target;
     [SerializeField] private Transform _chainObject;
+    
 
     private Transform[] _chainObjs;
     private Vector3[] _points;
     private float[] _lengths;
 
     private float totalLegLength;
+
+    private Vector3 _targetPoint = Vector3.zero;
+
+    public void SetTargetPoint(Vector3 target){
+        _targetPoint = target;
+    }
 
     private void Start(){
         _points = new Vector3[4];
@@ -38,7 +44,7 @@ public class IK_leg : MonoBehaviour
 
     private void Update()
     {
-        Vector3 fromBase2Target = _target.position - _base.position;
+        Vector3 fromBase2Target = _targetPoint - _base.position;
 
         float baseLength = fromBase2Target.magnitude;
         if (baseLength > totalLegLength){
