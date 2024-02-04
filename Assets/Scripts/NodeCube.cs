@@ -177,7 +177,13 @@ public class NodeCube{
                 && cube._stateOfCube == StateOfCube.NotCollided)
             {
                 Vector3 direction = (Position - cube.Position) * 1.5f;
-                if (Physics.Linecast(cube.Position, cube.Position + direction, out RaycastHit hit))
+                if (Physics.BoxCast(
+                    cube.Position, 
+                    Vector3.one * _size * 0.5f,
+                    direction, 
+                    out RaycastHit hit, 
+                    Quaternion.identity, 
+                    _size * 1.5f))
                 {
                     _hitNormals.Add(hit.normal);
                     _hitPoints.Add(hit.point);
