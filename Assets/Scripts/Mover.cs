@@ -10,14 +10,15 @@ public class Mover : MonoBehaviour
     [SerializeField] private float movementSpeed = 1f;
     [SerializeField] private float raycastRangeInAngles = 45f;
     [SerializeField] private float raycastStep = 5f;
+    [SerializeField] private NormalFinder _normalFinder;
 
     [Header("Sphere settings")]
     [SerializeField] private int raycastResolution = 32;
     [SerializeField] private float sphereRadius = 3f;
 
-    private List<Vector3> _hitNormals = new List<Vector3>();
-    private List<Vector3> _rayCastPoints = new List<Vector3>();
-    private List<Vector3> _raycastDirections = new List<Vector3>();
+    //private List<Vector3> _hitNormals = new List<Vector3>();
+    //private List<Vector3> _rayCastPoints = new List<Vector3>();
+    //private List<Vector3> _raycastDirections = new List<Vector3>();
 
 
     private Vector3 _currentNormal = Vector3.up;
@@ -30,31 +31,27 @@ public class Mover : MonoBehaviour
     public Vector3 Normal => _currentNormal;
 
 
-    private void OnValidate() {
-        GenerateHemiphereDirections();
-    }
 
     private void Update(){
-        FillRaycastNormals();
+        //FillRaycastNormals();
 
         HandleInput();
         UpdatePosition();
 
         // set orientation
-        if (_hitNormals.Count > 5)
-        {
-            Vector3 normal = GetTotalNormal(_rayCastPoints);
-           Debug.DrawLine(transform.position, transform.position + normal * 4, Color.red);
-            _currentNormal = GetCurrentNormal(_currentNormal, normal);
-            Debug.DrawLine(transform.position, transform.position + _currentNormal * 4, Color.blue);
 
-            // combine normal rotation and input rotation
-            Quaternion directionRotation = 
-                Quaternion.AngleAxis(_rotationInput * movementSpeed * 80 * Time.deltaTime, transform.up);
-            transform.rotation =  directionRotation * transform.rotation;
-            Quaternion rotation = Quaternion.FromToRotation(transform.up, _currentNormal);
-            transform.rotation = rotation * transform.rotation;
-        }
+        Vector3 normal = _normalFinder.GetTotalNormal();
+        Debug.DrawLine(transform.position, transform.position + normal * 4, Color.red);
+        _currentNormal = GetCurrentNormal(_currentNormal, normal);
+        Debug.DrawLine(transform.position, transform.position + _currentNormal * 4, Color.blue);
+
+        // combine normal rotation and input rotation
+        Quaternion directionRotation =
+            Quaternion.AngleAxis(_rotationInput * movementSpeed * 80 * Time.deltaTime, transform.up);
+        transform.rotation = directionRotation * transform.rotation;
+        Quaternion rotation = Quaternion.FromToRotation(transform.up, _currentNormal);
+        transform.rotation = rotation * transform.rotation;
+
     }
 
     private void HandleInput(){
@@ -103,36 +100,6 @@ public class Mover : MonoBehaviour
     }
 
 
-
-    private void FillRaycastNormals(){
-        _hitNormals.Clear();
-        _rayCastPoints.Clear();
-
-        Vector3 origin = transform.position;
-
-        foreach(Vector3 dir in _raycastDirections){
-            //Vector3 resultDir = rotation * dir;
-            Ray ray = new Ray(origin, dir);
-            var hits = Physics.RaycastAll(ray, sphereRadius * 1.2f);
-            if (hits.Length > 0)
-            {
-                _rayCastPoints.Add(hits[0].point);
-                _hitNormals.Add(hits[0].normal);
-                foreach(var hit in hits)
-                {
-                    _rayCastPoints.Add(hit.point);
-                    _hitNormals.Add(hit.normal);
-                }
-            }
-
-            // if(Physics.Raycast(ray, out RaycastHit hit, sphereRadius * 1.2f)){
-            //     _rayCastPoints.Add(hit.point);
-            //     _hitNormals.Add(hit.normal);
-            // }
-        }
-    }
-
-
     private Vector3 GetCurrentNormal(Vector3 from, Vector3 to){
         Quaternion rot1 = Quaternion.FromToRotation(from, to);
     
@@ -145,33 +112,6 @@ public class Mover : MonoBehaviour
         Quaternion currentRot = Quaternion.Slerp(Quaternion.identity, rot1, t);
 
         return (currentRot * from).normalized;
-    }
-
-    private Vector3[] GenerateOctaspherePoints(){
-        int totalResolution = raycastResolution * raycastResolution;
-
-        Vector3[] points = new Vector3[totalResolution];
-
-        for (int i = 0; i < points.Length; i++){
-            float inverseResolution = 1f / raycastResolution;
-            float y = i / raycastResolution * inverseResolution - 0.5f;
-            float x = i % raycastResolution * inverseResolution - 0.5f;
-            
-            float z = 0.5f - Mathf.Abs(x) - Mathf.Abs(y);
-            
-            float offset = Mathf.Max(-z, 0);
-            x += x < 0 ? offset : -offset;
-            y += y < 0 ? offset : -offset;
-            float scale = 1f / Mathf.Sqrt(x * x + y * y + z * z);
-
-            x *= scale;
-            y *= scale;
-            z *= scale;
-
-            points[i] = new Vector3(x,y,z);
-        }
-
-        return points;
     }
 
     private Vector3 GetTotalNormal(IEnumerable<Vector3> normals)
@@ -188,26 +128,6 @@ public class Mover : MonoBehaviour
         return totalNormal.normalized;
     }
 
-    private void GenerateHemiphereDirections(){
-        _raycastDirections = GenerateOctaspherePoints().ToList();
-    }
-
-    private void OnDrawGizmosSelected() {
-        Gizmos.color = Color.blue;
-        //Gizmos.DrawWireSphere(transform.position, radius);
-
-        Gizmos.color = Color.green;
-        //DrawPoints(_closestPoints);
-        Gizmos.color = Color.cyan;
-       // DrawPoints(_meshPoints);
-        Gizmos.color = Color.red;
-       // _rayPoints.AddRange(_meshPoints);
-        //_rayPoints.AddRange(_closestPoints);
-       DrawPoints(_rayCastPoints);
-        //DrawPoints(_directions.Select(a => transform.position + a * 3));
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, sphereRadius);
-    }
 
     private void DrawPoints(IEnumerable<Vector3> points){
         foreach (var point in points)
