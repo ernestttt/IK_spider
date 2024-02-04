@@ -43,7 +43,7 @@ public class Mover : MonoBehaviour
         // set orientation
         if (_hitNormals.Count > 5)
         {
-            Vector3 normal = GetTotalNormal(_hitNormals);
+            Vector3 normal = GetTotalNormal(_rayCastPoints);
            Debug.DrawLine(transform.position, transform.position + normal * 4, Color.red);
             _currentNormal = GetCurrentNormal(_currentNormal, normal);
             Debug.DrawLine(transform.position, transform.position + _currentNormal * 4, Color.blue);

@@ -12,7 +12,6 @@ public class IK_leg : MonoBehaviour
     [Header("Other settings")]
     [SerializeField] private float _rotationCoefX = .1f;
     [SerializeField] private float _thickness = .1f;
-    [SerializeField] private Transform _base;
     [SerializeField] private Transform _chainObject;
     
 
@@ -34,7 +33,7 @@ public class IK_leg : MonoBehaviour
         _chainObjs = new Transform[3];
 
         for(int i = 0; i < _chainObjs.Length; i++){
-            _chainObjs[i] = Instantiate(_chainObject, _base);
+            _chainObjs[i] = Instantiate(_chainObject, transform);
             _chainObjs[i].localScale =
                  new Vector3(_lengths[i] * _thickness, _lengths[i] * _thickness, _lengths[i]);
         }
@@ -44,7 +43,7 @@ public class IK_leg : MonoBehaviour
 
     private void Update()
     {
-        Vector3 fromBase2Target = _targetPoint - _base.position;
+        Vector3 fromBase2Target = _targetPoint - transform.position;
 
         float baseLength = fromBase2Target.magnitude;
         if (baseLength > totalLegLength){
@@ -61,9 +60,9 @@ public class IK_leg : MonoBehaviour
         Vector3 point2 = new Vector3(lenght1and2 * Mathf.Cos(angle1), lenght1and2 * Mathf.Sin(angle1), 0);
 
         Vector3 baseFromTargetYZero = new Vector3(fromBase2Target.x, 0, fromBase2Target.z);
-        float baseTargetAngle = Vector3.SignedAngle(_base.right, baseFromTargetYZero, _base.up);
-        Quaternion rotBaseTarget = Quaternion.AngleAxis(baseTargetAngle * _rotationCoefX, fromBase2Target);
-        _base.rotation = rotBaseTarget;
+        float baseTargetAngle = Vector3.SignedAngle(transform.right, baseFromTargetYZero, transform.up);
+        Quaternion rotBaseTarget =   Quaternion.AngleAxis(baseTargetAngle * _rotationCoefX, fromBase2Target);
+        transform.rotation =  rotBaseTarget *transform.parent.rotation;
 
         // Rotate everything by two angles
         Vector3 base2TargetYZero = new Vector3(fromBase2Target.x, 0, fromBase2Target.z);
@@ -72,21 +71,21 @@ public class IK_leg : MonoBehaviour
         
         Quaternion additionalRot =
             Quaternion.AngleAxis(angleX, 
-            _base.forward * Mathf.Sign(Vector3.Dot(_base.forward, axis)) * Mathf.Sign(Vector3.Dot(_base.right, base2TargetYZero)));
+            transform.forward * Mathf.Sign(Vector3.Dot(transform.forward, axis)) * Mathf.Sign(Vector3.Dot(transform.right, base2TargetYZero)));
 
-        axis = Vector3.Cross(base2TargetYZero, _base.right);
-        float angleY = Vector3.SignedAngle(_base.right, base2TargetYZero, axis);
-        additionalRot = Quaternion.AngleAxis(angleY, _base.up * Mathf.Sign(Vector3.Dot(_base.up, axis))) * additionalRot;
+        axis = Vector3.Cross(base2TargetYZero, transform.right);
+        float angleY = Vector3.SignedAngle(transform.right, base2TargetYZero, axis);
+        additionalRot = Quaternion.AngleAxis(angleY, transform.up * Mathf.Sign(Vector3.Dot(transform.up, axis))) * additionalRot;
         additionalRot *= rotBaseTarget;
-        point2 = additionalRot * point2;
-        point1 = additionalRot * point1;
+        point2 =  point2;
+        point1 =  point1;
 
         // fill points, 0 is the base point, 1,2 correspondingly point1, point2, 
         // 3 is the targetPoint or max length
-        _points[0] = _base.position;
-        _points[1] = _base.position + point1;
-        _points[2] = _base.position + point2;
-        _points[3] = _base.position + fromBase2Target;
+        _points[0] = transform.position;
+        _points[1] = transform.position + point1;
+        _points[2] = transform.position + point2;
+        _points[3] = transform.position + fromBase2Target;
 
         DrawDebugLines();
         UpdateObjects();

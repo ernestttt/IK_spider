@@ -464,7 +464,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 136734596}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 33736f6c4f8e9674580f9c076b98acc1, type: 3}
   m_Name: 
@@ -476,6 +476,9 @@ MonoBehaviour:
   - {x: 1.55, y: 0, z: -0.16}
   - {x: 0.88, y: 0, z: -1.63}
   step: 1
+  lowestStep: 0.01
+  speed: 6
+  height: 0.2
 --- !u!1 &161621537
 GameObject:
   m_ObjectHideFlags: 0

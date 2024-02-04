@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,12 +10,20 @@ public class PointFinder : MonoBehaviour
     [Tooltip("points only for one side, they are symetrical")]
     [SerializeField] private Vector3[] _legPlacement;
 
-    [SerializeField] private float step = .3f;
+    [SerializeField] private float step = 1f;
+    [SerializeField] private float lowestStep = .01f;
+    [SerializeField] private float speed = 2f;
+    [SerializeField] private float height = .2f;
 
     private Vector3[] _hitPoints = new Vector3[8];
     private Vector3[] _oldPoints = new Vector3[8];
+    private bool[] interIndices = new bool[8];
+    private float[] _interPolationValues = new float[8];
+    private Vector3[] _interPoinsWithHeight = new Vector3[8];
 
     private Vector3[] _currentLegPoints = new Vector3[8];
+
+    public Vector3[] Points => _interPoinsWithHeight;
 
     private Vector3[] CurrentPoints{
         get{
@@ -30,14 +39,55 @@ public class PointFinder : MonoBehaviour
     }
 
     private void Update(){
-        DrawLegPlacement();
+        //DrawLegPlacement();
         FillHitPoints();
-        UpdateOldPoins();
+        UpdateOldPointStates();
+        UpdatePoints();
+        UpdateHeight();
     }
 
-    private void UpdateOldPoins(){
+    private void UpdateHeight(){
+        for(int i = 0; i < _interPoinsWithHeight.Length; i++){
+            if (true || interIndices[i])
+            {
+                _interPoinsWithHeight[i] = _oldPoints[i]
+                   + Mathf.Sin(_interPolationValues[i] * Mathf.PI) * _mover.Normal * height;
+            }
+        }
+    }
+
+    private void UpdatePoints(){
+        for(int i = 0; i < interIndices.Length; i++){
+            if(interIndices[i]){
+                Vector3 startPoint = _hitPoints[i];
+                Vector3 endPoint = _oldPoints[i];
+
+                float diff = (startPoint - endPoint).magnitude;
+                float currentSpeed = speed * Time.deltaTime;
+
+                float t = currentSpeed/diff;
+                t = Mathf.Clamp01(t);
+                Vector3 interVector = Vector3.Lerp(endPoint, startPoint, t);
+                _interPolationValues[i] = t;
+               // interVector += Mathf.Sin(t * Mathf.PI) * _mover.Normal * height;
+                _oldPoints[i] = interVector;
+            }
+        }
+    }
+
+    private void UpdateOldPointStates(){
         for(int i = 0; i < _oldPoints.Length; i++){
-            if((_oldPoints[i] - _hitPoints[i]).magnitude >= step){
+            float diff = (_oldPoints[i] - _hitPoints[i]).magnitude;
+            if (!interIndices[i] && diff >= step){
+                interIndices[i] = true;
+                _interPolationValues[i] =0;
+            }
+            else if(interIndices[i] && _interPolationValues[i] > .9f){
+                _oldPoints[i] = _hitPoints[i];
+                interIndices[i] = false;
+                _interPolationValues[i] = 1;
+            }
+            else if(diff > 10f){
                 _oldPoints[i] = _hitPoints[i];
             }
         }
@@ -107,10 +157,11 @@ public class PointFinder : MonoBehaviour
     }
 
     private void OnDrawGizmosSelected(){
+        return;
         Gizmos.color = Color.green;
         DrawPoints(_hitPoints);
         Gizmos.color = Color.blue;
-        DrawPoints(_oldPoints);
+        DrawPoints(_interPoinsWithHeight);
     }
 
     private void DrawPoints(IEnumerable<Vector3> points){
