@@ -1704,9 +1704,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f90e4c7d67a863448ace729e0513204, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalInterpolationSpeed: 120
-  distanceFromSurface: 0.3
-  distanceInterpolationSpeed: 20
+  normalInterpolationSpeed: 90
+  distanceFromSurface: 1
+  distanceInterpolationSpeed: 5
   movementSpeed: 3
   raycastRangeInAngles: 45
   raycastStep: 5

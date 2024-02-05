@@ -1,12 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
+using IKSpider.Movement;
 
 public class PointFinder : MonoBehaviour
 {
-    [SerializeField] private Mover _mover;
+    [SerializeField] private BodyMover _mover;
     [Tooltip("points only for one side, they are symetrical")]
     [SerializeField] private Vector3[] _legPlacement;
 

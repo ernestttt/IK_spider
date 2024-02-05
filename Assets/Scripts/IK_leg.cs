@@ -61,8 +61,8 @@ public class IK_leg : MonoBehaviour
 
         Vector3 baseFromTargetYZero = new Vector3(fromBase2Target.x, 0, fromBase2Target.z);
         float baseTargetAngle = Vector3.SignedAngle(transform.right, baseFromTargetYZero, transform.up);
-        Quaternion rotBaseTarget =   Quaternion.AngleAxis(baseTargetAngle * _rotationCoefX, fromBase2Target);
-        transform.rotation =  rotBaseTarget *transform.parent.rotation;
+         Quaternion rotBaseTarget =   Quaternion.AngleAxis(baseTargetAngle * _rotationCoefX, fromBase2Target);
+       transform.rotation *=  rotBaseTarget *transform.parent.rotation;
 
         // Rotate everything by two angles
         Vector3 base2TargetYZero = new Vector3(fromBase2Target.x, 0, fromBase2Target.z);
@@ -76,7 +76,7 @@ public class IK_leg : MonoBehaviour
         axis = Vector3.Cross(base2TargetYZero, transform.right);
         float angleY = Vector3.SignedAngle(transform.right, base2TargetYZero, axis);
         additionalRot = Quaternion.AngleAxis(angleY, transform.up * Mathf.Sign(Vector3.Dot(transform.up, axis))) * additionalRot;
-        additionalRot *= rotBaseTarget;
+        //additionalRot *= rotBaseTarget;
         point2 =  point2;
         point1 =  point1;
 
