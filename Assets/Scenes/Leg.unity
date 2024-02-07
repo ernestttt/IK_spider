@@ -404,6 +404,10 @@ PrefabInstance:
       propertyPath: _base
       value: 
       objectReference: {fileID: 1486583081}
+    - target: {fileID: 1013078145845380142, guid: bb71f301b4a5f954695dd02be648ec88, type: 3}
+      propertyPath: _chainObj
+      value: 
+      objectReference: {fileID: 6919320449037860587, guid: f32a8dbf1ed9c1b47b32b05ea70553fe, type: 3}
     - target: {fileID: 6624798526525779861, guid: bb71f301b4a5f954695dd02be648ec88, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

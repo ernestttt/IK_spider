@@ -11,9 +11,11 @@ namespace IKSpider.IK
 
         [Header("Other settings")]
         [SerializeField] private float _thickness = .1f;
+        [SerializeField] private Transform _chainObj;
 
         private Vector3[] _points;
         private float[] _lengths;
+        private Transform[] _chainObjs;
 
         private float totalLegLength;
 
@@ -28,8 +30,15 @@ namespace IKSpider.IK
         {
             _points = new Vector3[4];
             _lengths = new float[] { length1, length2, length3 };
+            _chainObjs = new Transform[_lengths.Length];
 
             totalLegLength = length3 + length2 + length1;
+
+            for(int i = 0; i < _lengths.Length; i++){
+                var chain = Instantiate(_chainObj, transform);
+                chain.localScale = new Vector3(_thickness, _thickness, _lengths[i]);
+                _chainObjs[i] = chain;
+            }
         }
 
         private void Update()
@@ -88,7 +97,7 @@ namespace IKSpider.IK
             _points[3] = transform.position + fromBase2Target;
 
             DrawDebugLines();
-            //UpdateObjects();
+            UpdateObjects();
         }
 
         private void DrawDebugLines()
@@ -97,28 +106,43 @@ namespace IKSpider.IK
             Debug.DrawLine(_points[0], _points[1]);
             Debug.DrawLine(_points[1], _points[2]);
             Debug.DrawLine(_points[2], _points[3]);
-            //Debug.DrawLine(_points[0], _points[2], Color.red);
         }
 
-        // private void UpdateObjects(){
-        //     // adjust positions
-        //     Vector3 pos1 = _points[0] + (_points[1] - _points[0]) * .5f;
-        //     Vector3 pos2 = _points[1] + (_points[2] - _points[1]) * .5f;
-        //     Vector3 pos3 = _points[2] + (_points[3] - _points[2]) * .5f;
+        private void UpdateObjects(){
+            // adjust positions
+            Vector3 pos1 = _points[0] + (_points[1] - _points[0]) * .5f;
+            Vector3 pos2 = _points[1] + (_points[2] - _points[1]) * .5f;
+            Vector3 pos3 = _points[2] + (_points[3] - _points[2]) * .5f;
 
-        //     _chainObjs[0].position = pos1;
-        //     _chainObjs[1].position = pos2;
-        //     _chainObjs[2].position = pos3;
+            _chainObjs[0].position = pos1;
+            _chainObjs[1].position = pos2;
+            _chainObjs[2].position = pos3;
 
-        //     // adjust rotation
-        //     Vector3 forward1 = (_points[1] - _points[0]);
-        //     Vector3 forward2 = (_points[2] - _points[1]);
-        //     Vector3 forward3 = (_points[3] - _points[2]);
+            // adjust rotation
+            // at first adjust forward axis
+            Vector3 forward1 = _points[1] - _points[0];
+            Vector3 forward2 = _points[2] - _points[1];
+            Vector3 forward3 = _points[3] - _points[2];
 
-        //     _chainObjs[0].forward = forward1;
-        //     _chainObjs[1].forward = forward2;
-        //     _chainObjs[2].forward = forward3;
-        // }
+            Quaternion rot1 = Quaternion.FromToRotation(_chainObjs[0].forward, forward1);
+            Quaternion rot2 = Quaternion.FromToRotation(_chainObjs[1].forward, forward2);
+            Quaternion rot3 = Quaternion.FromToRotation(_chainObjs[2].forward, forward3);
+            
+            _chainObjs[0].rotation = rot1 * _chainObjs[0].rotation;
+            _chainObjs[1].rotation = rot2 * _chainObjs[1].rotation;
+            _chainObjs[2].rotation = rot3 * _chainObjs[2].rotation;
+
+            // then adjust right axis
+            Vector3 fromBaseToTarget = _points[3] - transform.position;
+            Vector3 point1 = _points[1] - transform.position;
+            Vector3 cross = Vector3.Cross(point1, fromBaseToTarget);
+            Quaternion rotRight1 = Quaternion.FromToRotation(_chainObjs[0].right, cross);
+            Quaternion rotRight2 = Quaternion.FromToRotation(_chainObjs[1].right, cross);
+            Quaternion rotRight3 = Quaternion.FromToRotation(_chainObjs[2].right, cross);
+            _chainObjs[0].rotation = rotRight1 * _chainObjs[0].rotation;
+            _chainObjs[1].rotation = rotRight2 * _chainObjs[1].rotation;
+            _chainObjs[2].rotation = rotRight3 * _chainObjs[2].rotation;
+        }
 
         private float FindAngle(float a, float b, float c)
         {
