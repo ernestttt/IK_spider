@@ -12,7 +12,7 @@ public class PointFinder : MonoBehaviour
     [SerializeField] private float lowestStep = .01f;
     [SerializeField] private float speed = 2f;
     [SerializeField] private float height = .2f;
-    [SerializeField] private int _numberOfRaycastSteps;
+    [SerializeField, Range(1,10)] private int _numberOfRaycastSteps;
 
     private Vector3[] _hitPoints = new Vector3[8];
     private Vector3[] _oldPoints = new Vector3[8];
@@ -50,7 +50,7 @@ public class PointFinder : MonoBehaviour
     private void Update(){
         DrawLegPlacement();
         FillHitPoints();
-        //UpdateOldPointStates();
+        UpdateOldPointStates();
         //UpdatePoints();
         //UpdateHeight();
     }
@@ -87,16 +87,7 @@ public class PointFinder : MonoBehaviour
     private void UpdateOldPointStates(){
         for(int i = 0; i < _oldPoints.Length; i++){
             float diff = (_oldPoints[i] - _hitPoints[i]).magnitude;
-            if (!interIndices[i] && diff >= step){
-                interIndices[i] = true;
-                _interPolationValues[i] =0;
-            }
-            else if(interIndices[i] && _interPolationValues[i] > .9f){
-                _oldPoints[i] = _hitPoints[i];
-                interIndices[i] = false;
-                _interPolationValues[i] = 1;
-            }
-            else if(diff > 10f){
+            if (diff >= step){
                 _oldPoints[i] = _hitPoints[i];
             }
         }
@@ -114,9 +105,9 @@ public class PointFinder : MonoBehaviour
                 Vector3 lastPoint = transform.position - _mover.Normal * _mover.DistanceFromSurface * 1.5f;
                 for (int j = 0; j <= _numberOfRaycastSteps; j++)
                 {
-                    _linePoints[i] = Vector3.Lerp(firstPoint, lastPoint, _tDelta * j);
+                    _linePoints[j] = Vector3.Lerp(firstPoint, lastPoint, _tDelta * j);
                 }
-                for (int k = 0; k < _linePoints.Length; k++){
+                for (int k = 0; k <=_numberOfRaycastSteps; k++){
                     if(Physics.Linecast(CurrentPoints[i], _linePoints[k], out RaycastHit hit)){
                         _hitPoints[i] = hit.point;
                         break;
@@ -142,11 +133,10 @@ public class PointFinder : MonoBehaviour
     }
 
     private void OnDrawGizmosSelected(){
-        return;
         Gizmos.color = Color.green;
         DrawPoints(_hitPoints);
         Gizmos.color = Color.blue;
-        DrawPoints(_interPointsWithHeight);
+        DrawPoints(_oldPoints);
     }
 
     private void DrawPoints(IEnumerable<Vector3> points){
