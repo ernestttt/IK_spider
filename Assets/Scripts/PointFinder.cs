@@ -17,9 +17,7 @@ public class PointFinder : MonoBehaviour
     private Vector3[] _hitPoints = new Vector3[8];
     private Vector3[] _oldPoints = new Vector3[8];
     private Vector3[] _interPoints = new Vector3[8];
-
-    private Vector3[] _currentLegPoints = new Vector3[8];
-
+    private Vector3[] _interPointsWithHills = new Vector3[8];
 
     // find hit poins variables
     private float _tDelta;
@@ -27,6 +25,7 @@ public class PointFinder : MonoBehaviour
 
     private float TotalSpeed => speed + _mover.Speed;
 
+    private Vector3[] _currentLegPoints = new Vector3[8];
     private Vector3[] CurrentPoints{
         // may update this part only once per frame
         get{
@@ -65,7 +64,15 @@ public class PointFinder : MonoBehaviour
 
             float t = Mathf.Clamp01(TotalSpeed * Time.deltaTime / distance);
             _interPoints[i] = Vector3.Lerp(_interPoints[i], _oldPoints[i], t);
+
+            // get hill
+            float hill = GetHill(distance/step);
+            _interPointsWithHills[i] = _interPoints[i] + _mover.Normal * hill * height;
         }
+    }
+
+    private float GetHill(float t){
+        return Mathf.Sin(t * Mathf.PI);
     }
 
     private void UpdateOldPointStates(){
@@ -122,7 +129,7 @@ public class PointFinder : MonoBehaviour
         Gizmos.color = Color.blue;
         DrawPoints(_oldPoints);
         Gizmos.color = new Color(1, .6f, 0);
-        DrawPoints(_interPoints);
+        DrawPoints(_interPointsWithHills);
     }
 
     private void DrawPoints(IEnumerable<Vector3> points){
