@@ -16,17 +16,16 @@ public class PointFinder : MonoBehaviour
 
     private Vector3[] _hitPoints = new Vector3[8];
     private Vector3[] _oldPoints = new Vector3[8];
-    private bool[] interIndices = new bool[8];
-    private float[] _interPolationValues = new float[8];
-    private Vector3[] _interPointsWithHeight = new Vector3[8];
+    private Vector3[] _interPoints = new Vector3[8];
 
     private Vector3[] _currentLegPoints = new Vector3[8];
 
-    public Vector3[] Points => _interPointsWithHeight;
 
     // find hit poins variables
     private float _tDelta;
     private Vector3[] _linePoints;
+
+    private float TotalSpeed => speed + _mover.Speed;
 
     private Vector3[] CurrentPoints{
         // may update this part only once per frame
@@ -51,36 +50,21 @@ public class PointFinder : MonoBehaviour
         DrawLegPlacement();
         FillHitPoints();
         UpdateOldPointStates();
-        //UpdatePoints();
-        //UpdateHeight();
+        UpdateInterPoints();
     }
 
-    private void UpdateHeight(){
-        for(int i = 0; i < _interPointsWithHeight.Length; i++){
-            if (true || interIndices[i])
-            {
-                _interPointsWithHeight[i] = _oldPoints[i]
-                   + Mathf.Sin(_interPolationValues[i] * Mathf.PI) * _mover.Normal * height;
+    private void UpdateInterPoints(){
+        for(int i = 0; i < _interPoints.Length; i++){
+
+            float distance = (_oldPoints[i] - _interPoints[i]).magnitude;
+
+            if(distance > step * 2){
+                _interPoints[i] = _oldPoints[i];
+                continue;
             }
-        }
-    }
 
-    private void UpdatePoints(){
-        for(int i = 0; i < interIndices.Length; i++){
-            if(interIndices[i]){
-                Vector3 startPoint = _hitPoints[i];
-                Vector3 endPoint = _oldPoints[i];
-
-                float diff = (startPoint - endPoint).magnitude;
-                float currentSpeed = speed * Time.deltaTime;
-
-                float t = currentSpeed/diff;
-                t = Mathf.Clamp01(t);
-                Vector3 interVector = Vector3.Lerp(endPoint, startPoint, t);
-                _interPolationValues[i] = t;
-               // interVector += Mathf.Sin(t * Mathf.PI) * _mover.Normal * height;
-                _oldPoints[i] = interVector;
-            }
+            float t = Mathf.Clamp01(TotalSpeed * Time.deltaTime / distance);
+            _interPoints[i] = Vector3.Lerp(_interPoints[i], _oldPoints[i], t);
         }
     }
 
@@ -133,10 +117,12 @@ public class PointFinder : MonoBehaviour
     }
 
     private void OnDrawGizmosSelected(){
-        Gizmos.color = Color.green;
-        DrawPoints(_hitPoints);
+        //Gizmos.color = Color.green;
+        //DrawPoints(_hitPoints);
         Gizmos.color = Color.blue;
         DrawPoints(_oldPoints);
+        Gizmos.color = new Color(1, .6f, 0);
+        DrawPoints(_interPoints);
     }
 
     private void DrawPoints(IEnumerable<Vector3> points){

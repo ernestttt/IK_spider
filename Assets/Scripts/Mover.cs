@@ -18,6 +18,7 @@ namespace IKSpider.Movement
 
         public Vector3 Normal => _currentNormal;
         public float DistanceFromSurface => _distanceFromSurface;
+        public float Speed => _movementSpeed;
 
         private void Update()
         {
