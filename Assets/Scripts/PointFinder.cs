@@ -12,18 +12,24 @@ public class PointFinder : MonoBehaviour
     [SerializeField] private float lowestStep = .01f;
     [SerializeField] private float speed = 2f;
     [SerializeField] private float height = .2f;
+    [SerializeField] private int _numberOfRaycastSteps;
 
     private Vector3[] _hitPoints = new Vector3[8];
     private Vector3[] _oldPoints = new Vector3[8];
     private bool[] interIndices = new bool[8];
     private float[] _interPolationValues = new float[8];
-    private Vector3[] _interPoinsWithHeight = new Vector3[8];
+    private Vector3[] _interPointsWithHeight = new Vector3[8];
 
     private Vector3[] _currentLegPoints = new Vector3[8];
 
-    public Vector3[] Points => _interPoinsWithHeight;
+    public Vector3[] Points => _interPointsWithHeight;
+
+    // find hit poins variables
+    private float _tDelta;
+    private Vector3[] _linePoints;
 
     private Vector3[] CurrentPoints{
+        // may update this part only once per frame
         get{
             // fill current leg points
             for(int i = 0; i < _legPlacement.Length; i++){
@@ -36,19 +42,24 @@ public class PointFinder : MonoBehaviour
         }
     }
 
+    private void OnValidate(){
+        _tDelta = 1.0f / _numberOfRaycastSteps;
+        _linePoints = new Vector3[_numberOfRaycastSteps + 1];
+    }
+
     private void Update(){
-        //DrawLegPlacement();
+        DrawLegPlacement();
         FillHitPoints();
-        UpdateOldPointStates();
-        UpdatePoints();
-        UpdateHeight();
+        //UpdateOldPointStates();
+        //UpdatePoints();
+        //UpdateHeight();
     }
 
     private void UpdateHeight(){
-        for(int i = 0; i < _interPoinsWithHeight.Length; i++){
+        for(int i = 0; i < _interPointsWithHeight.Length; i++){
             if (true || interIndices[i])
             {
-                _interPoinsWithHeight[i] = _oldPoints[i]
+                _interPointsWithHeight[i] = _oldPoints[i]
                    + Mathf.Sin(_interPolationValues[i] * Mathf.PI) * _mover.Normal * height;
             }
         }
@@ -94,56 +105,32 @@ public class PointFinder : MonoBehaviour
     private void FillHitPoints(){
         for (int i = 0; i < CurrentPoints.Length; i++)
         {
-            Ray ray = new Ray(CurrentPoints[i], -_mover.Normal);
-
-            Vector3 cross = Vector3.Cross(CurrentPoints[i] - transform.position, _mover.Normal);
-            Quaternion rotation = Quaternion.AngleAxis(-10f, cross);
-            Ray ray2 = new Ray(CurrentPoints[i], rotation * -_mover.Normal);
-
-
-            if (Physics.Linecast(CurrentPoints[i], transform.position, out RaycastHit lineHit)){
+            if (Physics.Linecast(transform.position, CurrentPoints[i], out RaycastHit lineHit)){
                 _hitPoints[i] = lineHit.point;
-                //Debug.DrawLine(CurrentPoints[i], _hitPoints[i], Color.blue);
-            }
-            else if (Physics.Raycast(ray, out RaycastHit hit, 4f))
-            {
-                _hitPoints[i] = hit.point;
-                //Debug.DrawLine(CurrentPoints[i], _hitPoints[i]);
-            }
-            else if (Physics.Raycast(ray2, out RaycastHit hit2, 4f) && 
-                !Physics.Linecast(hit2.point, CurrentPoints[i]))
-            {
-                _hitPoints[i] = hit2.point;
-               // Debug.DrawLine(CurrentPoints[i], _hitPoints[i], Color.green);
-            }
-            else if (Physics.SphereCast(ray2.origin, 1.5f, ray2.direction, out RaycastHit sphereHit, 4f))
-            {
-                if (sphereHit.collider is MeshCollider)
-                {
-                    _hitPoints[i] = sphereHit.point;
-                }
-                else
-                {
-                    Vector3 closestPoint = sphereHit.collider.ClosestPoint(CurrentPoints[i]);
-                    if (sphereHit.collider.bounds.Contains(closestPoint)
-                        || sphereHit.collider.bounds.Contains(CurrentPoints[i]))
-                    {
-                        //Debug.Log("Inside collider");
-                        //Debug.DrawLine(CurrentPoints[i], _hitPoints[i], Color.red);
-                        _hitPoints[i] = closestPoint;
-                    }
-                    else
-                    {
-                        _hitPoints[i] = closestPoint;
-                    }
-                }
-
-                //Debug.DrawLine(CurrentPoints[i], _hitPoints[i]);
             }
             else
             {
-                // _hitPoints[i] = Vector3.zero;
+                Vector3 firstPoint = CurrentPoints[i] - _mover.Normal * _mover.DistanceFromSurface * 1.5f;
+                Vector3 lastPoint = transform.position - _mover.Normal * _mover.DistanceFromSurface * 1.5f;
+                for (int j = 0; j <= _numberOfRaycastSteps; j++)
+                {
+                    _linePoints[i] = Vector3.Lerp(firstPoint, lastPoint, _tDelta * j);
+                }
+                for (int k = 0; k < _linePoints.Length; k++){
+                    if(Physics.Linecast(CurrentPoints[i], _linePoints[k], out RaycastHit hit)){
+                        _hitPoints[i] = hit.point;
+                        break;
+                    }
+                }
             }
+        }
+
+        DrawHitLines();
+    }
+
+    private void DrawHitLines(){
+        for (int i = 0; i < _hitPoints.Length; i++){
+            Debug.DrawLine(CurrentPoints[i], _hitPoints[i], Color.green);
         }
     }
 
@@ -159,7 +146,7 @@ public class PointFinder : MonoBehaviour
         Gizmos.color = Color.green;
         DrawPoints(_hitPoints);
         Gizmos.color = Color.blue;
-        DrawPoints(_interPoinsWithHeight);
+        DrawPoints(_interPointsWithHeight);
     }
 
     private void DrawPoints(IEnumerable<Vector3> points){

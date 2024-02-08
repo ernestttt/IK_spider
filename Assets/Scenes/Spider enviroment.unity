@@ -441,6 +441,60 @@ Transform:
   - {fileID: 1517540256}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &99233408
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 99233409}
+  - component: {fileID: 99233410}
+  m_Layer: 0
+  m_Name: PointFinder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &99233409
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99233408}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1368561277}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &99233410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99233408}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33736f6c4f8e9674580f9c076b98acc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _mover: {fileID: 1368561279}
+  _legPlacement:
+  - {x: 1.6524, y: 0, z: 1.9764}
+  - {x: 2.0736, y: 0, z: 0.3969}
+  - {x: 1.9602, y: 0, z: -0.4374}
+  - {x: 1.6767, y: 0, z: -2.0169}
+  step: 1
+  lowestStep: 0.01
+  speed: 2
+  height: 0.2
 --- !u!1 &161621537
 GameObject:
   m_ObjectHideFlags: 0
@@ -1685,11 +1739,12 @@ Transform:
   m_GameObject: {fileID: 1368561272}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 19.1, y: 3.68, z: 43.8}
+  m_LocalPosition: {x: 19.1, y: 1.61, z: 43.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 48687061}
+  - {fileID: 99233409}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1368561279
@@ -1704,15 +1759,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f90e4c7d67a863448ace729e0513204, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalInterpolationSpeed: 90
-  distanceFromSurface: 1
-  distanceInterpolationSpeed: 5
-  movementSpeed: 3
-  raycastRangeInAngles: 45
-  raycastStep: 5
+  _normalInterpolationSpeed: 180
+  _distanceFromSurface: 1.5
+  _distanceInterpolationSpeed: 20
+  _movementSpeed: 2.5
   _normalFinder: {fileID: 48687060}
-  raycastResolution: 12
-  sphereRadius: 3
 --- !u!1 &1420918914
 GameObject:
   m_ObjectHideFlags: 0

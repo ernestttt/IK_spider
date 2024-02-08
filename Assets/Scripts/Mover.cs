@@ -5,10 +5,10 @@ namespace IKSpider.Movement
 {
     public class BodyMover : MonoBehaviour
     {
-        [SerializeField] private float normalInterpolationSpeed = 30f;
-        [SerializeField] private float distanceFromSurface = 2;
-        [SerializeField] private float distanceInterpolationSpeed = 10f;
-        [SerializeField] private float movementSpeed = 1f;
+        [SerializeField] private float _normalInterpolationSpeed = 30f;
+        [SerializeField] private float _distanceFromSurface = 2;
+        [SerializeField] private float _distanceInterpolationSpeed = 10f;
+        [SerializeField] private float _movementSpeed = 1f;
         [SerializeField] private NormalFinder _normalFinder;
 
         private Vector3 _currentNormal = Vector3.up;
@@ -17,6 +17,7 @@ namespace IKSpider.Movement
         private float _rotationInput = 0f;
 
         public Vector3 Normal => _currentNormal;
+        public float DistanceFromSurface => _distanceFromSurface;
 
         private void Update()
         {
@@ -31,7 +32,7 @@ namespace IKSpider.Movement
 
             // combine normal rotation and input rotation
             Quaternion directionRotation =
-                Quaternion.AngleAxis(_rotationInput * movementSpeed * 80 * Time.deltaTime, transform.up);
+                Quaternion.AngleAxis(_rotationInput * _movementSpeed * 80 * Time.deltaTime, transform.up);
             transform.rotation = directionRotation * transform.rotation;
             Quaternion rotation = Quaternion.FromToRotation(transform.up, _currentNormal);
             transform.rotation = rotation * transform.rotation;
@@ -50,18 +51,18 @@ namespace IKSpider.Movement
             TryToAdjustPos(ray);
 
             // update with input
-            transform.position += _moveInput * movementSpeed * Time.deltaTime * transform.forward;
+            transform.position += _moveInput * _movementSpeed * Time.deltaTime * transform.forward;
         }
 
         private bool TryToAdjustPos(Ray ray)
         {
-            if (Physics.Raycast(ray, out RaycastHit hit, distanceFromSurface * 10f))
+            if (Physics.Raycast(ray, out RaycastHit hit, _distanceFromSurface * 10f))
             {
-                Vector3 posTo = hit.point + _currentNormal * distanceFromSurface;
+                Vector3 posTo = hit.point + _currentNormal * _distanceFromSurface;
                 float diff = (posTo - transform.position).magnitude;
                 if (diff > .1f)
                 {
-                    float t = distanceInterpolationSpeed * Time.deltaTime / diff;
+                    float t = _distanceInterpolationSpeed * Time.deltaTime / diff;
                     transform.position = Vector3.Lerp(transform.position, posTo, t);
                 }
 
@@ -77,7 +78,7 @@ namespace IKSpider.Movement
 
             float angle = Vector3.Angle(from, to);
 
-            float t = normalInterpolationSpeed * Time.deltaTime / angle;
+            float t = _normalInterpolationSpeed * Time.deltaTime / angle;
 
             Quaternion currentRot = Quaternion.Slerp(Quaternion.identity, rot, t);
 
