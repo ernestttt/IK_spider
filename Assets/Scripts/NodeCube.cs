@@ -162,15 +162,39 @@ namespace IKSpider.Orientation
 
         public void StartCheckingFromTheNode()
         {
-            // for now i start from upper node of first node
-            _up.CheckNode();
+            if(_up != null && !_up.CheckNodeBox()){
+                _up.CheckNode();
+            }
+            else if (_down != null && !_down.CheckNodeBox())
+            {
+                _down.CheckNode();
+            }
+            else if (_backward != null && !_backward.CheckNodeBox())
+            {
+                _backward.CheckNode();
+            }
+            else if (_forward != null && !_forward.CheckNodeBox())
+            {
+                _forward.CheckNode();
+            }
+            else if (_right != null && !_right.CheckNodeBox())
+            {
+                _right.CheckNode();
+            }
+            else if (_left != null && !_left.CheckNodeBox())
+            {
+                _left.CheckNode();
+            }
+            else{
+                _up.StartCheckingFromTheNode();
+            }
         }
 
         private void CheckNode()
         {
             if (_stateOfCube != StateOfCube.NotVisited) return;
 
-            if (Physics.CheckBox(Position, Vector3.one * Size * 0.5f))
+            if (CheckNodeBox())
             {
                 _stateOfCube = StateOfCube.Collided;
             }
@@ -185,6 +209,10 @@ namespace IKSpider.Orientation
                 _right?.CheckNode();
                 _left?.CheckNode();
             }
+        }
+
+        private bool CheckNodeBox(){
+            return Physics.CheckBox(Position, Vector3.one * Size * 0.5f);
         }
 
         public void GenerateNormals()
