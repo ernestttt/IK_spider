@@ -12,6 +12,7 @@ namespace IKSpider.IK
         [Header("Other settings")]
         [SerializeField] private float _thickness = .1f;
         [SerializeField] private Transform _chainObj;
+        [SerializeField] private bool _drawLines = false;
 
         private Vector3[] _points;
         private float[] _lengths;
@@ -34,7 +35,8 @@ namespace IKSpider.IK
 
             totalLegLength = length3 + length2 + length1;
 
-            for(int i = 0; i < _lengths.Length; i++){
+            for (int i = 0; i < _lengths.Length; i++)
+            {
                 var chain = Instantiate(_chainObj, transform);
                 chain.localScale = new Vector3(_thickness, _thickness, _lengths[i]);
                 _chainObjs[i] = chain;
@@ -56,11 +58,10 @@ namespace IKSpider.IK
             float lenght1and2 = Mathf.Lerp(length1, length2 + length1, baseLength / totalLegLength);
             float angle2 = FindAngle(baseLength, lenght1and2, length3);
             float angle1 = FindAngle(length1, lenght1and2, length2) + angle2;
-
+            
             Vector3 point1 = new Vector3(length1 * Mathf.Cos(angle1), length1 * Mathf.Sin(angle1), 0);
             Vector3 point2 = new Vector3(lenght1and2 * Mathf.Cos(angle2), lenght1and2 * Mathf.Sin(angle2), 0);
             
-        
             Vector3 cross1 = Vector3.Cross(fromBase2Target, Vector3.up).normalized;
 
 
@@ -68,7 +69,9 @@ namespace IKSpider.IK
             point1 = rot * point1;
             point2 = rot * point2;
 
-            if (Vector3.Angle(Vector3.forward, cross1) == 180){
+
+            if (Vector3.Angle(Vector3.forward, cross1) == 180)
+            {
                 Quaternion rotAroundCross1 = Quaternion.AngleAxis(180, Vector3.forward);
                 point1 = rotAroundCross1 * point1;
                 point2 = rotAroundCross1 * point2;
@@ -89,6 +92,7 @@ namespace IKSpider.IK
             point1 = rot2 * point1;
             point2 = rot2 * point2;
 
+
             // fill points, 0 is the base point, 1,2 correspondingly point1, point2, 
             // 3 is the targetPoint or max length
             _points[0] = transform.position;
@@ -102,13 +106,15 @@ namespace IKSpider.IK
 
         private void DrawDebugLines()
         {
+            if(!_drawLines) return;
             Debug.DrawLine(_points[0], _points[3]);
             Debug.DrawLine(_points[0], _points[1]);
             Debug.DrawLine(_points[1], _points[2]);
             Debug.DrawLine(_points[2], _points[3]);
         }
 
-        private void UpdateObjects(){
+        private void UpdateObjects()
+        {
             // adjust positions
             Vector3 pos1 = _points[0] + (_points[1] - _points[0]) * .5f;
             Vector3 pos2 = _points[1] + (_points[2] - _points[1]) * .5f;
@@ -124,10 +130,11 @@ namespace IKSpider.IK
             Vector3 forward2 = _points[2] - _points[1];
             Vector3 forward3 = _points[3] - _points[2];
 
+
             Quaternion rot1 = Quaternion.FromToRotation(_chainObjs[0].forward, forward1);
             Quaternion rot2 = Quaternion.FromToRotation(_chainObjs[1].forward, forward2);
             Quaternion rot3 = Quaternion.FromToRotation(_chainObjs[2].forward, forward3);
-            
+
             _chainObjs[0].rotation = rot1 * _chainObjs[0].rotation;
             _chainObjs[1].rotation = rot2 * _chainObjs[1].rotation;
             _chainObjs[2].rotation = rot3 * _chainObjs[2].rotation;
@@ -146,8 +153,28 @@ namespace IKSpider.IK
 
         private float FindAngle(float a, float b, float c)
         {
+            if(a == 0 || b == 0 || c == 0){
+                return 0;
+            }
             float cosine = (a * a + b * b - c * c) / (2 * a * b);
-            return Mathf.Acos(cosine);
+            float acos = Mathf.Acos(cosine);
+            if(float.IsNaN(acos))
+            {
+                return 0;
+            }
+            return acos;
+        }
+
+        private Quaternion GetFromToRotation(Vector3 from, Vector3 to){
+            if(IsNotNearZeroVector(from) && IsNotNearZeroVector(to))
+            {
+                return Quaternion.FromToRotation(from, to);
+            }
+            return Quaternion.identity;
+        }
+
+        private bool IsNotNearZeroVector(Vector3 vector){
+            return vector.sqrMagnitude > .1f;
         }
     }
 }

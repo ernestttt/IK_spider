@@ -10,6 +10,7 @@ namespace IKSpider.Movement
         [SerializeField] private float _distanceInterpolationSpeed = 10f;
         [SerializeField] private float _movementSpeed = 1f;
         [SerializeField] private NormalFinder _normalFinder;
+        [SerializeField] private bool _showNormal;
 
         private Vector3 _currentNormal = Vector3.up;
 
@@ -27,9 +28,8 @@ namespace IKSpider.Movement
 
             // set orientation
             Vector3 normal = _normalFinder.GetTotalNormal();
-            Debug.DrawLine(transform.position, transform.position + normal * 4, Color.red);
             _currentNormal = GetCurrentNormal(_currentNormal, normal);
-            Debug.DrawLine(transform.position, transform.position + _currentNormal * 4, Color.blue);
+            ShowDebugNormals(normal, _currentNormal);
 
             // combine normal rotation and input rotation
             Quaternion directionRotation =
@@ -37,6 +37,12 @@ namespace IKSpider.Movement
             transform.rotation = directionRotation * transform.rotation;
             Quaternion rotation = Quaternion.FromToRotation(transform.up, _currentNormal);
             transform.rotation = rotation * transform.rotation;
+        }
+
+        private void ShowDebugNormals(Vector3 targetNormal, Vector3 currentNormal){
+            if(!_showNormal)    return;
+            Debug.DrawLine(transform.position, transform.position + targetNormal * 4, Color.red);
+            Debug.DrawLine(transform.position, transform.position + currentNormal * 4, Color.blue);
         }
 
         private void HandleInput()

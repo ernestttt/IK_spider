@@ -14,6 +14,7 @@ public class PointFinder : MonoBehaviour
     [SerializeField] private float height = .2f;
     [SerializeField, Range(1,10)] private int _numberOfRaycastSteps;
     [SerializeField] private float _updatePointsInterval = 0.7f;
+    [SerializeField] private bool _showDebugLines = false;
 
     private Vector3[] _hitPoints = new Vector3[8];
     private Vector3[] _stepPoints = new Vector3[8];
@@ -49,6 +50,8 @@ public class PointFinder : MonoBehaviour
         }
     }
 
+    public Vector3[] Points => _interPointsWithHills;
+
     private void OnValidate(){
         _tDelta = 1.0f / _numberOfRaycastSteps;
         _linePoints = new Vector3[_numberOfRaycastSteps + 1];
@@ -76,7 +79,13 @@ public class PointFinder : MonoBehaviour
             _interPoints[i] = Vector3.Lerp(_interPoints[i], _stepPoints[i], frameT);
 
             // get hill
-            float hillT = distance / (_stepPoints[i] - _oldPoints[i]).magnitude;
+            float distanceStepOld = (_stepPoints[i] - _oldPoints[i]).magnitude;
+            float hillT = 0;
+            if (distanceStepOld > 0.1f)
+            {
+                hillT = distance / distanceStepOld;
+            }
+            
             float hill = GetHill(hillT);
             _interPointsWithHills[i] = _interPoints[i] + _mover.Normal * hill * height;
         }
@@ -131,12 +140,14 @@ public class PointFinder : MonoBehaviour
     }
 
     private void DrawHitLines(){
+        if (!_showDebugLines) return;
         for (int i = 0; i < _hitPoints.Length; i++){
             Debug.DrawLine(CurrentPoints[i], _hitPoints[i], Color.green);
         }
     }
 
     private void DrawLegPlacement(){
+        if(!_showDebugLines)    return;
         foreach(var leg in CurrentPoints)
         {
             Debug.DrawLine(transform.position, leg);

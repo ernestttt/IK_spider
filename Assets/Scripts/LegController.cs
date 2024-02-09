@@ -10,7 +10,7 @@ public class LegController : MonoBehaviour
 
     private void Update(){
         for(int i = 0; i < legs.Length; i++){
-            //legs[i].SetTargetPoint(_pointFinder.Points[i]);
+            legs[i].SetTargetPoint(_pointFinder.Points[i]);
         }
     }
 }
