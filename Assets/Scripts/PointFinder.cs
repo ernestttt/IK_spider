@@ -13,8 +13,11 @@ public class PointFinder : MonoBehaviour
     [SerializeField] private float speed = 2f;
     [SerializeField] private float height = .2f;
     [SerializeField, Range(1,10)] private int _numberOfRaycastSteps;
+    [SerializeField] private float _updatePointsInterval = 0.7f;
 
     private Vector3[] _hitPoints = new Vector3[8];
+    private Vector3[] _stepPoints = new Vector3[8];
+    // for hill
     private Vector3[] _oldPoints = new Vector3[8];
     private Vector3[] _interPoints = new Vector3[8];
     private Vector3[] _interPointsWithHills = new Vector3[8];
@@ -22,6 +25,12 @@ public class PointFinder : MonoBehaviour
     // find hit poins variables
     private float _tDelta;
     private Vector3[] _linePoints;
+
+    // for zigzag pattern
+    private bool _zigzagFlag;
+    private int[] _firstZigzagIndices = new int[] { 0, 3, 4, 7 };
+    private int[] _secondZigzagIndices = new int[] { 1, 2, 5, 6 };
+    private float _nextPointUpdateTime = float.MinValue;
 
     private float TotalSpeed => speed + _mover.Speed;
 
@@ -55,18 +64,20 @@ public class PointFinder : MonoBehaviour
     private void UpdateInterPoints(){
         for(int i = 0; i < _interPoints.Length; i++){
 
-            float distance = (_oldPoints[i] - _interPoints[i]).magnitude;
+            float distance = (_stepPoints[i] - _interPoints[i]).magnitude;
 
-            if(distance > step * 2){
-                _interPoints[i] = _oldPoints[i];
+            if(distance > 3){
+                _interPoints[i] = _stepPoints[i];
+                _oldPoints[i] = _stepPoints[i];
                 continue;
             }
 
-            float t = Mathf.Clamp01(TotalSpeed * Time.deltaTime / distance);
-            _interPoints[i] = Vector3.Lerp(_interPoints[i], _oldPoints[i], t);
+            float frameT = Mathf.Clamp01(TotalSpeed * Time.deltaTime / distance);
+            _interPoints[i] = Vector3.Lerp(_interPoints[i], _stepPoints[i], frameT);
 
             // get hill
-            float hill = GetHill(distance/step);
+            float hillT = distance / (_stepPoints[i] - _oldPoints[i]).magnitude;
+            float hill = GetHill(hillT);
             _interPointsWithHills[i] = _interPoints[i] + _mover.Normal * hill * height;
         }
     }
@@ -76,10 +87,19 @@ public class PointFinder : MonoBehaviour
     }
 
     private void UpdateOldPointStates(){
-        for(int i = 0; i < _oldPoints.Length; i++){
-            float diff = (_oldPoints[i] - _hitPoints[i]).magnitude;
-            if (diff >= step){
-                _oldPoints[i] = _hitPoints[i];
+        if(_nextPointUpdateTime < Time.time){
+            _nextPointUpdateTime = Time.time + _updatePointsInterval;
+            int[] indicesArr = _zigzagFlag ? _firstZigzagIndices : _secondZigzagIndices;
+            _zigzagFlag = !_zigzagFlag;
+
+            for (int i = 0; i < indicesArr.Length; i++)
+            {
+                float distance = (_stepPoints[indicesArr[i]] - _hitPoints[indicesArr[i]]).magnitude;
+                if (distance > step)
+                {
+                    _oldPoints[indicesArr[i]] = _stepPoints[indicesArr[i]];
+                    _stepPoints[indicesArr[i]] = _hitPoints[indicesArr[i]];
+                }
             }
         }
     }
@@ -127,7 +147,7 @@ public class PointFinder : MonoBehaviour
         //Gizmos.color = Color.green;
         //DrawPoints(_hitPoints);
         Gizmos.color = Color.blue;
-        DrawPoints(_oldPoints);
+        DrawPoints(_stepPoints);
         Gizmos.color = new Color(1, .6f, 0);
         DrawPoints(_interPointsWithHills);
     }
