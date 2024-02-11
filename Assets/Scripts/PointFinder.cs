@@ -15,6 +15,7 @@ public class PointFinder : MonoBehaviour
     [SerializeField, Range(1,10)] private int _numberOfRaycastSteps;
     [SerializeField] private float _updatePointsInterval = 0.7f;
     [SerializeField] private bool _showDebugLines = false;
+    [SerializeField] private float _heightOfRaycast = 3f;
 
     private Vector3[] _hitPoints = new Vector3[8];
     private Vector3[] _stepPoints = new Vector3[8];
@@ -69,7 +70,7 @@ public class PointFinder : MonoBehaviour
 
             float distance = (_stepPoints[i] - _interPoints[i]).magnitude;
 
-            if(distance > 3){
+            if(distance > 6){
                 _interPoints[i] = _stepPoints[i];
                 _oldPoints[i] = _stepPoints[i];
                 continue;
@@ -121,7 +122,7 @@ public class PointFinder : MonoBehaviour
             }
             else
             {
-                Vector3 firstPoint = CurrentPoints[i] - _mover.Normal * _mover.DistanceFromSurface * 1.5f;
+                Vector3 firstPoint = CurrentPoints[i] + (_mover.Normal * height) - _mover.Normal * _mover.DistanceFromSurface * 1.8f;
                 Vector3 lastPoint = transform.position - _mover.Normal * _mover.DistanceFromSurface * 1.5f;
                 for (int j = 0; j <= _numberOfRaycastSteps; j++)
                 {
