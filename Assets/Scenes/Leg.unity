@@ -400,6 +400,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1013078145845380142, guid: bb71f301b4a5f954695dd02be648ec88, type: 3}
+      propertyPath: _drawLines
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6624798526525779861, guid: bb71f301b4a5f954695dd02be648ec88, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

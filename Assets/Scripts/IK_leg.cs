@@ -59,46 +59,23 @@ namespace IKSpider.IK
             float angle2 = FindAngle(baseLength, lenght1and2, length3);
             float angle1 = FindAngle(length1, lenght1and2, length2) + angle2;
             
-            Vector3 point1 = new Vector3(length1 * Mathf.Cos(angle1), length1 * Mathf.Sin(angle1), 0);
-            Vector3 point2 = new Vector3(lenght1and2 * Mathf.Cos(angle2), lenght1and2 * Mathf.Sin(angle2), 0);
-            
-            Vector3 cross1 = Vector3.Cross(fromBase2Target, Vector3.up).normalized;
+            Vector3 point1 = transform.right * length1 * Mathf.Cos(angle1) 
+                            + transform.up * length1 * Mathf.Sin(angle1);
+            Vector3 point2 = transform.right * lenght1and2 * Mathf.Cos(angle2)
+                            + transform.up * lenght1and2 * Mathf.Sin(angle2);
+            Vector3 point3 = transform.right * fromBase2Target.magnitude;
 
-
-            Quaternion rot = Quaternion.FromToRotation(Vector3.forward, cross1);
-            point1 = rot * point1;
-            point2 = rot * point2;
-
-
-            if (Vector3.Angle(Vector3.forward, cross1) == 180)
-            {
-                Quaternion rotAroundCross1 = Quaternion.AngleAxis(180, Vector3.forward);
-                point1 = rotAroundCross1 * point1;
-                point2 = rotAroundCross1 * point2;
-            }
-
-            Vector3 cross2 = Vector3.Cross(Vector3.up, cross1);
-            Quaternion rot1 = Quaternion.FromToRotation(cross2, fromBase2Target);
+            Quaternion rot1 = Quaternion.FromToRotation(point3, fromBase2Target);
             point1 = rot1 * point1;
             point2 = rot1 * point2;
-
-            // align all to y axis
-            Vector3 cross3 = Vector3.Cross(fromBase2Target, point1);
-            Vector3 cross4 = Vector3.Cross(cross3, fromBase2Target);
-            Vector3 cross5 = Vector3.Cross(fromBase2Target, transform.up);
-            Vector3 cross6 = Vector3.Cross(cross5, fromBase2Target);
-
-            Quaternion rot2 = Quaternion.FromToRotation(cross4, cross6);
-            point1 = rot2 * point1;
-            point2 = rot2 * point2;
-
+            point3 = rot1 * point3;
 
             // fill points, 0 is the base point, 1,2 correspondingly point1, point2, 
             // 3 is the targetPoint or max length
             _points[0] = transform.position;
             _points[1] = transform.position + point1;
             _points[2] = transform.position + point2;
-            _points[3] = transform.position + fromBase2Target;
+            _points[3] = transform.position + point3;
 
             DrawDebugLines();
             UpdateObjects();
@@ -107,7 +84,6 @@ namespace IKSpider.IK
         private void DrawDebugLines()
         {
             if(!_drawLines) return;
-            Debug.DrawLine(_points[0], _points[3]);
             Debug.DrawLine(_points[0], _points[1]);
             Debug.DrawLine(_points[1], _points[2]);
             Debug.DrawLine(_points[2], _points[3]);
@@ -139,7 +115,7 @@ namespace IKSpider.IK
             _chainObjs[1].rotation = rot2 * _chainObjs[1].rotation;
             _chainObjs[2].rotation = rot3 * _chainObjs[2].rotation;
 
-            // then adjust right axis
+            //then adjust right axis
             Vector3 fromBaseToTarget = _points[3] - transform.position;
             Vector3 point1 = _points[1] - transform.position;
             Vector3 cross = Vector3.Cross(point1, fromBaseToTarget);
