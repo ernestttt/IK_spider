@@ -63,9 +63,28 @@ namespace IKSpider.Movement
 
         private bool TryToAdjustPos(Ray ray)
         {
+            Vector3 sphereVector = Vector3.zero;
+            if(Physics.SphereCast(ray.origin + _currentNormal, 1f, ray.direction, out RaycastHit sphereHit, _distanceFromSurface * 10f))
+            {
+                sphereVector = sphereHit.point - transform.position;
+                Debug.DrawLine(transform.position, sphereHit.point, Color.red);
+            }
+
             if (Physics.Raycast(ray, out RaycastHit hit, _distanceFromSurface * 10f))
             {
-                Vector3 posTo = hit.point + _currentNormal * _distanceFromSurface;
+                Vector3 rayCastVector = hit.point - transform.position;
+                
+                Vector3 sphereCastOnRay = ProjectVOnU(sphereVector, rayCastVector);
+                Vector3 lowPoint;
+                if(sphereCastOnRay == Vector3.zero){
+                    lowPoint = hit.point;
+                }
+                else{
+                    lowPoint = transform.position + sphereCastOnRay;
+                }
+
+                Vector3 posTo = lowPoint + _currentNormal * _distanceFromSurface;
+                Debug.DrawLine(transform.position, hit.point);
                 float diff = (posTo - transform.position).magnitude;
                 if (diff > .1f)
                 {
@@ -78,6 +97,13 @@ namespace IKSpider.Movement
             return false;
         }
 
+        private Vector3 ProjectVOnU(Vector3 v, Vector3 u){
+            if((u == Vector3.zero) || (v == Vector3.zero)){
+                return Vector3.zero;
+            }
+
+            return (Vector3.Dot(v, u)/Vector3.Dot(u, u)) * u;
+        }
 
         private Vector3 GetCurrentNormal(Vector3 from, Vector3 to)
         {

@@ -7,6 +7,10 @@ public class CameraFollower : MonoBehaviour
     [SerializeField] private float height = 5;
     [SerializeField] private float width = 10;
 
+    private void Start(){
+        transform.position = _target.position;
+    }
+
     private void Update(){
         Vector3 targetPosition = _target.position + _target.up * height - _target.forward * width;
         float distance = (targetPosition - transform.position).magnitude;
