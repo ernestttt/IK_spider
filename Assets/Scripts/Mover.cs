@@ -48,7 +48,12 @@ namespace IKSpider.Movement
         private void HandleInput()
         {
             _moveInput = Input.GetAxis("Vertical");
-            _rotationInput = Input.GetAxis("Mouse X");
+            if(_moveInput < 0)
+            {
+                _moveInput = 0;
+            }
+                
+            _rotationInput = Input.GetAxis("Mouse X")*0.3f;
         }
 
         private void UpdatePosition()
@@ -74,7 +79,7 @@ namespace IKSpider.Movement
             {
                 Vector3 rayCastVector = hit.point - transform.position;
                 
-                Vector3 sphereCastOnRay = ProjectVOnU(sphereVector, rayCastVector);
+                Vector3 sphereCastOnRay = Vector3.Project(sphereVector, rayCastVector);
                 Vector3 lowPoint;
                 if(sphereCastOnRay == Vector3.zero){
                     lowPoint = hit.point;

@@ -70,7 +70,6 @@ namespace IKSpider.Orientation
 
         public Vector3 GetTotalNormal()
         {
-
             Vector3 resultNormal = Vector3.zero;
 
             foreach (var normal in _hitNormals)
@@ -89,7 +88,7 @@ namespace IKSpider.Orientation
                 Debug.DrawLine(_hitPoints[i], _hitPoints[i] + _hitNormals[i], new Color(1, 0, 0, .2f));
             }
 
-            Debug.DrawLine(transform.position, transform.position + _totalNormal);
+            Debug.DrawLine(transform.position, transform.position + GetTotalNormal(), Color.red);
         }
 
         private void OnDrawGizmos()

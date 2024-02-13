@@ -122,7 +122,7 @@ public class PointFinder : MonoBehaviour
             }
             else
             {
-                Vector3 firstPoint = CurrentPoints[i] + (_mover.Normal * height) - _mover.Normal * _mover.DistanceFromSurface * 1.8f;
+                Vector3 firstPoint = CurrentPoints[i] + (_mover.Normal * height) - _mover.Normal * _mover.DistanceFromSurface * 2f;
                 Vector3 lastPoint = transform.position - _mover.Normal * _mover.DistanceFromSurface * 1.5f;
                 for (int j = 0; j <= _numberOfRaycastSteps; j++)
                 {

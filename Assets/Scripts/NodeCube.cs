@@ -185,7 +185,7 @@ namespace IKSpider.Orientation
             {
                 _left.CheckNode();
             }
-            else{
+            else if(_up != null){
                 _up.StartCheckingFromTheNode();
             }
         }
