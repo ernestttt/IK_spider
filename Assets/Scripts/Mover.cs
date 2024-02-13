@@ -1,5 +1,6 @@
 using UnityEngine;
 using IKSpider.Orientation;
+using IKSpider.Input;
 
 namespace IKSpider.Movement
 {
@@ -11,6 +12,7 @@ namespace IKSpider.Movement
         [SerializeField] private float _movementSpeed = 1f;
         [SerializeField] private NormalFinder _normalFinder;
         [SerializeField] private bool _showNormal;
+        [SerializeField] private InputManager _inputManager;
 
         private Vector3 _currentNormal = Vector3.up;
 
@@ -47,13 +49,13 @@ namespace IKSpider.Movement
 
         private void HandleInput()
         {
-            _moveInput = Input.GetAxis("Vertical");
+            _moveInput = _inputManager.ForwardMove;;
             if(_moveInput < 0)
             {
                 _moveInput = 0;
             }
                 
-            _rotationInput = Input.GetAxis("Mouse X")*0.3f;
+            _rotationInput = _inputManager.Rotation * 0.3f;
         }
 
         private void UpdatePosition()

@@ -18,8 +18,6 @@ namespace IKSpider.Orientation
         // for debug puporses
         private List<Vector3> _hitPoints = new List<Vector3>();
 
-        private Vector3 _totalNormal = Vector3.up;
-
         private void OnValidate()
         {
             _nodes = null;

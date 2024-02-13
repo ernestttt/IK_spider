@@ -4,9 +4,9 @@ using IKSpider.Movement;
 
 public class PointFinder : MonoBehaviour
 {
-    [SerializeField] private BodyMover _mover;
     [Tooltip("points only for one side, they are symetrical")]
     [SerializeField] private Vector3[] _legPlacement;
+    [SerializeField] private float _distanceFromSurface = 2;
 
     [SerializeField] private float step = 1f;
     [SerializeField] private float lowestStep = .01f;
@@ -34,7 +34,7 @@ public class PointFinder : MonoBehaviour
     private int[] _secondZigzagIndices = new int[] { 1, 2, 5, 6 };
     private float _nextPointUpdateTime = float.MinValue;
 
-    private float TotalSpeed => speed + _mover.Speed;
+    private float TotalSpeed => speed;
 
     private Vector3[] _currentLegPoints = new Vector3[8];
     private Vector3[] CurrentPoints{
@@ -88,7 +88,7 @@ public class PointFinder : MonoBehaviour
             }
             
             float hill = GetHill(hillT);
-            _interPointsWithHills[i] = _interPoints[i] + _mover.Normal * hill * height;
+            _interPointsWithHills[i] = _interPoints[i] + transform.up * hill * height;
         }
     }
 
@@ -122,8 +122,8 @@ public class PointFinder : MonoBehaviour
             }
             else
             {
-                Vector3 firstPoint = CurrentPoints[i] + (_mover.Normal * height) - _mover.Normal * _mover.DistanceFromSurface * 2f;
-                Vector3 lastPoint = transform.position - _mover.Normal * _mover.DistanceFromSurface * 1.5f;
+                Vector3 firstPoint = CurrentPoints[i] + (transform.up * height) - transform.up * _distanceFromSurface * 2f;
+                Vector3 lastPoint = transform.position - transform.up * _distanceFromSurface * 1.5f;
                 for (int j = 0; j <= _numberOfRaycastSteps; j++)
                 {
                     _linePoints[j] = Vector3.Lerp(firstPoint, lastPoint, _tDelta * j);

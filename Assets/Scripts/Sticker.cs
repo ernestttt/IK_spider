@@ -12,7 +12,7 @@ namespace IKSpider.Movement{
         private void Update(){
             Vector3 normal = _normalFinder.GetTotalNormal();
 
-            Ray ray = new Ray(transform.position + normal * 1.5f, -normal);
+            Ray ray = new Ray(transform.position + normal * 3, -normal);
             // stick body to the surface
             AdjustPos(ray);
         }
@@ -20,7 +20,7 @@ namespace IKSpider.Movement{
         private void AdjustPos(Ray ray)
         {
             Vector3 sphereVector = Vector3.zero;
-            if (Physics.SphereCast(ray.origin, _sphereRadius, ray.direction, out RaycastHit sphereHit, 5))
+            if (Physics.SphereCast(ray.origin, _sphereRadius, ray.direction, out RaycastHit sphereHit, 10))
             {
                 sphereVector = sphereHit.point - transform.position;
                 Debug.DrawLine(transform.position, sphereHit.point, Color.red);
@@ -28,13 +28,12 @@ namespace IKSpider.Movement{
 
             Debug.DrawLine(ray.origin, ray.origin + ray.direction, Color.blue);
 
-            if (Physics.Raycast(ray, out RaycastHit hit, 5))
+            if (Physics.Raycast(ray, out RaycastHit hit, 10))
             {
-                
                 Vector3 rayCastVector = hit.point - transform.position;
 
                 // to escape narrow places
-                Vector3 lowPoint = GetLowPoint(sphereVector, rayCastVector, hit.point);
+                Vector3 lowPoint = GetLowPoint(sphereVector, rayCastVector, sphereHit.point);
 
                 _stickTransform.position = lowPoint - ray.direction * _distanceFromSurface;
                 Debug.DrawLine(transform.position, hit.point);
